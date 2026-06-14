@@ -3,105 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Among Us 3D: Lobby Edition</title>
+    <title>Among Us 3D: Карта по Чертежу</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #05050a; font-family: sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #020205; font-family: sans-serif; }
         #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* МЕНЮ ПОДКЛЮЧЕНИЯ */
+        /* МЕНЮ ВХОДА */
         #menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #0f1026 0%, #030308 100%);
+            background: radial-gradient(circle at center, #151633 0%, #05050a 100%);
             z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .menu-box { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); text-align: center; width: 90%; max-width: 380px; }
-        h1 { font-size: 36px; color: #ff3333; margin-bottom: 20px; text-shadow: 0 0 15px rgba(255,51,51,0.5); }
-        input { width: 100%; padding: 12px 20px; margin: 10px 0; border-radius: 25px; border: 1px solid #444; background: #111; color: white; font-size: 16px; text-align: center; outline: none; }
-        .menu-btn { width: 100%; padding: 14px; margin-top: 10px; border-radius: 25px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; }
-        .btn-create { background: #28a745; }
-        .btn-join { background: #007bff; }
+        .menu-box { background: rgba(255,255,255,0.06); padding: 35px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px); text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { font-size: 32px; color: #ff3333; margin-bottom: 20px; text-shadow: 0 0 15px rgba(255,51,51,0.4); letter-spacing: 2px; }
+        input { width: 100%; padding: 14px 20px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #0c0d14; color: white; font-size: 16px; text-align: center; outline: none; transition: 0.2s; }
+        input:focus { border-color: #ff3333; }
+        .menu-btn { width: 100%; padding: 14px; margin-top: 12px; border-radius: 25px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; }
+        .btn-create { background: #2ecc71; box-shadow: 0 4px 12px rgba(46,204,113,0.2); }
+        .btn-join { background: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,0.2); }
+        .menu-btn:hover { transform: scale(1.02); }
 
-        /* ЭКРАН ИГРОВОГО ЛОББИ (ОЖИДАНИЕ ИГРОКОВ) */
+        /* ЛОББИ ПОДКЛЮЧЕНИЯ */
         #lobby-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 11, 28, 0.95); z-index: 180;
+            background: rgba(7, 8, 18, 0.98); z-index: 180;
             flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .lobby-box { background: #11121c; border: 2px solid #334; border-radius: 15px; padding: 25px; width: 85%; max-width: 400px; text-align: center; }
-        #lobby-status { font-size: 18px; color: #aaa; margin: 15px 0; }
-        #start-game-btn { display: none; width: 100%; padding: 15px; background: #28a745; color: white; font-weight: bold; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px rgba(40,167,69,0.4); margin-top: 15px; }
+        .lobby-box { background: #11121c; border: 2px solid #232538; border-radius: 20px; padding: 30px; width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        #lobby-status { font-size: 15px; color: #8e92a7; margin: 12px 0; }
+        #lobby-players-list { text-align: left; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; max-height: 180px; overflow-y: auto; font-family: monospace; font-size: 15px; margin-bottom: 20px; border: 1px solid #1f2130; color: #2ecc71; }
+        #start-game-btn { width: 100%; padding: 15px; background: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; display: none; box-shadow: 0 0 20px rgba(231,76,60,0.4); }
 
         /* РУЛЕТКА РОЛЕЙ */
         #role-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 150; align-items: center; justify-content: center; flex-direction: column; }
-        #role-text { font-size: 50px; font-weight: 900; letter-spacing: 5px; }
+        #role-text { font-size: 48px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* HUD */
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; border: 1px solid #334; color: #fff; pointer-events: none; font-family: monospace; }
-        #room-code-display { color: #f1c40f; font-weight: bold; }
-        .task { color: #ff6b6b; font-size: 13px; margin-top: 4px; }
-        .task.done { color: #2ecc71; text-decoration: line-through; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: rgba(255,255,255,0.6); border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
+        /* ИГРОВОЙ ИНТЕРФЕЙС (HUD) */
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(10,11,20,0.85); padding: 18px; border-radius: 12px; border: 1px solid #232538; color: #fff; pointer-events: none; font-family: 'Courier New', monospace; min-width: 250px; }
+        #room-code-display { color: #f1c40f; font-weight: bold; font-size: 16px; margin-bottom: 3px; }
+        #tasks-container { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .task { color: #ff6b6b; font-size: 13px; font-weight: bold; }
+        .task.done { color: #2ecc71; text-decoration: line-through; opacity: 0.6; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
 
-        /* УПРАВЛЕНИЕ */
-        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
-        #joystick-stick { width: 50px; height: 50px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; pointer-events: none; }
-        
+        /* УПРАВЛЕНИЕ ДЛЯ ТЕЛЕФОНОВ */
+        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
+        #joystick-stick { width: 50px; height: 50px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .action-group { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
-        .action-btn { width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 14px; border: 3px solid #556; background: #1e1e28; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #btn-kill { display: none; background: #800000; border-color: #ff4d4d; }
+        .action-btn { width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 15px; border: 3px solid #3b3d54; background: #171821; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(0,0,0,0.4); transition: 0.1s; }
+        .action-btn:active { transform: scale(0.95); }
+        #btn-kill { display: none; background: #c0392b; border-color: #e74c3c; }
 
+        /* ОКНО КВЕСТА */
         .pop-up { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; color: white; }
-        .pop-up-body { background: #15151a; padding: 25px; border-radius: 15px; width: 85%; max-width: 380px; text-align: center; }
+        .pop-up-body { background: #161722; padding: 30px; border-radius: 18px; border: 1px solid #334; width: 85%; max-width: 380px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <!-- Стартовое Меню -->
     <div id="menu-overlay">
         <div class="menu-box">
             <h1>AMONG US 3D</h1>
             <input type="text" id="username-input" placeholder="ТВОЙ НИКНЕЙМ" value="Игрок">
-            <hr style="border: 0.5px solid #333; margin: 15px 0;">
-            <button class="menu-btn btn-create" id="action-create">СОЗДАТЬ ХОСТ</button>
+            <hr style="border: 0.5px solid #222; margin: 15px 0;">
+            <button class="menu-btn btn-create" id="action-create">СОЗДАТЬ ИГРУ</button>
             <input type="number" id="code-input" placeholder="КОД ИЗ 3 ЦИФР">
-            <button class="menu-btn btn-join" id="action-join">ПОДКЛЮЧИТЬСЯ</button>
+            <button class="menu-btn btn-join" id="action-join">ВОЙТИ К ДРУГУ</button>
         </div>
     </div>
 
-    <!-- Новое Лобби Ожидания -->
     <div id="lobby-screen">
         <div class="lobby-box">
-            <h2 id="lobby-code-title" style="color: #f1c40f; font-size: 28px;">КОД: ---</h2>
+            <h2 id="lobby-code-title" style="color: #f1c40f; font-size: 26px;">КОД: ---</h2>
             <p id="lobby-status">Ожидание игроков...</p>
-            <div style="margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; text-align: left;">
-                <p style="color: #667; font-size: 12px; margin-bottom: 5px;">Игроки в лобби:</p>
-                <div id="lobby-players-list" style="font-size: 14px; font-family: monospace; color: #2ecc71;">• Ты вошел</div>
-            </div>
-            <button id="start-game-btn">СТАРТ ИГРЫ 🚀</button>
+            <div id="lobby-players-list"></div>
+            <button id="start-game-btn">НАЧАТЬ МАТЧ 🚀</button>
         </div>
     </div>
 
-    <!-- Экран Рулетки Ролей -->
     <div id="role-screen"><h1 id="role-text"></h1></div>
 
-    <!-- HUD -->
     <div id="crosshair"></div>
     <div id="hud">
-        <div id="room-code-display">Комната: Ожидание...</div>
-        <div style="font-size: 11px; color: #aaa; margin-bottom: 5px;">Игроков в сети: <span id="player-count">1</span></div>
-        <div class="task" id="t-wires">❌ Починить щиток (Энергоблок)</div>
-        <div class="task" id="t-button">❌ Проверить Главный стол (Зал)</div>
-        <div class="task" id="t-books">❌ Собрать книги (Библиотека)</div>
+        <div id="room-code-display">Комната: ---</div>
+        <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Игроков на карте: <span id="player-count">1</span></div>
+        <div id="tasks-container"></div>
     </div>
 
     <div id="game-container"></div>
 
-    <!-- Тач-интерфейс -->
     <div id="joystick-zone"><div id="joystick-stick"></div></div>
-    
     <div class="action-group">
         <button class="action-btn" id="btn-use" disabled>USE</button>
         <button class="action-btn" id="btn-kill">KILL</button>
@@ -109,94 +103,155 @@
 
     <div class="pop-up" id="task-modal">
         <div class="pop-up-body">
-            <h2 id="task-title" style="color: #f1c40f;">Задание</h2>
-            <p style="margin-top: 15px; color: #ccc;">Синхронизация систем завершена!</p>
-            <button style="padding: 10px; margin-top: 15px; width:100%; background:#28a745; color:white; border:none; border-radius:5px;" id="btn-task-done">ГОТОВО</button>
+            <h2 id="task-title" style="color: #f1c40f; font-size: 22px;">Выполнение задания</h2>
+            <p style="margin-top: 15px; color: #bdc3c7; font-size: 14px;">Система откалибрована и синхронизирована!</p>
+            <button style="padding: 12px; margin-top: 20px; width:100%; background:#2ecc71; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;" id="btn-task-done">ЗАВЕРШИТЬ</button>
         </div>
     </div>
 
     <script>
-        // --- СЦЕНА THREE.JS ---
         const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020205);
+        scene.background = new THREE.Color(0x05050d);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.8); scene.add(ambient);
-        const flashlight = new THREE.PointLight(0xffffff, 0.6, 15); scene.add(flashlight);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambient);
+        const flashlight = new THREE.PointLight(0xffffff, 0.5, 15); scene.add(flashlight);
 
-        // --- ГЕОМЕТРИЯ КАРТЫ ПО ТВОЕМУ ШАБЛОНУ ---
         const mapGroup = new THREE.Group();
         const interactibles = [];
+        const wallsBB = [];
         scene.add(mapGroup);
 
-        function buildRoom(x, z, w, h, color) {
-            const floorGeo = new THREE.PlaneGeometry(w, h);
-            const floorMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2; floor.position.set(x, 0, z);
-            mapGroup.add(floor);
-
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x161722 });
-            const hWall = new THREE.BoxGeometry(w, 3.2, 0.2);
-            const vWall = new THREE.BoxGeometry(0.2, 3.2, h);
-
-            const wTop = new THREE.Mesh(hWall, wallMat); wTop.position.set(x, 1.6, z - h/2); mapGroup.add(wTop);
-            const wBot = new THREE.Mesh(hWall, wallMat); wBot.position.set(x, 1.6, z + h/2); mapGroup.add(wBot);
-            const wL = new THREE.Mesh(vWall, wallMat); wL.position.set(x - w/2, 1.6, z); sceneGroup = mapGroup.add(wL);
-            const wR = new THREE.Mesh(vWall, wallMat); wR.position.set(x + w/2, 1.6, z); mapGroup.add(wR);
+        // --- ГЕНЕРАЦИЯ КАРТЫ СТРОГО ПО ТВОЕМУ ЧЕРТЕЖУ ---
+        function createSector(x, z, w, h, color) {
+            const geo = new THREE.PlaneGeometry(w, h);
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geo, mat); mesh.rotation.x = -Math.PI / 2; mesh.position.set(x, 0, z);
+            mapGroup.add(mesh);
         }
 
-        buildRoom(0, -10, 12, 8, 0xEADAA2);  // Главный Зал
-        buildRoom(-1, -3, 10, 6, 0xCBC6E3);  // Управление
-        buildRoom(-7, -1, 4, 10, 0x8B5A2B);  // Библиотека
-        buildRoom(-1, 5, 10, 6, 0x999999);   // Тактический Центр
-        buildRoom(7, -3, 5, 16, 0x44444c);   // Коридор
-        buildRoom(12, -4, 4, 3, 0x222225);   // Энергоблок
-        buildRoom(12, -0.5, 4, 3, 0x7AC5CD);  // Туалеты
-        buildRoom(12, 3, 4, 3, 0x98F5FF);    // Душевые
+        // Полы зон по чертежу
+        createSector(0, -12, 8, 6, 0xf9e79f);   // Стол с кнопкой (Кафетерий) - Желтый
+        createSector(0, -8, 8, 2, 0xa3e4d7);    // О2 - Зеленый
+        createSector(0, -3, 8, 8, 0xd7bde2);    // Управление - Фиолетовый
+        createSector(-7, -3, 6, 8, 0xa0522d);   // Шкаф с книгами (Библиотека) - Коричневый
+        createSector(-2, 5, 16, 8, 0xbdc3c7);   // Нижний зал (Диваны, Столы, Карта) - Серый
+        createSector(7, -3, 6, 24, 0xd5d8dc);   // Главный правый коридор - Серый светлый
+        createSector(13, -13, 6, 4, 0x566573);  // Энергоблок - Темно-серый
+        createSector(13, -8, 6, 6, 0x5dade2);   // Санузел (Раковина + Туалеты) - Голубой
+        createSector(13, -2, 6, 6, 0x3498db);   // Душевые - Синий
 
-        function createPoint(x, z, size, color, type) {
-            const geo = new THREE.BoxGeometry(size, size, size);
-            const mat = new THREE.MeshStandardMaterial({ color: color });
-            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(x, size/2, z);
-            mapGroup.add(mesh); interactibles.push({ mesh, type, radius: 2.2 });
+        // Создание Стен (с боксами коллизий)
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x1c1e2e, roughness: 0.5 });
+        function buildWall(x, z, w, d) {
+            const geo = new THREE.BoxGeometry(w, 3.5, d);
+            const mesh = new THREE.Mesh(geo, wallMat); mesh.position.set(x, 1.75, z);
+            mapGroup.add(mesh); wallsBB.push(new THREE.Box3().setFromObject(mesh));
         }
-        createPoint(0, -10, 1.4, 0xdd2222, "Button");
-        createPoint(13, -4, 0.7, 0x00dd00, "Wires");
-        createPoint(-8, -2, 0.5, 0x442200, "Books");
 
-        // --- НАСТРОЙКИ ИГРОКА ---
-        let playerPos = new THREE.Vector3(0, 1.65, -9);
-        let yaw = 0, pitch = 0;
-        camera.position.copy(playerPos);
+        // Внешние границы всей карты
+        buildWall(0, -15.2, 8, 0.4); buildWall(-4.2, -12, 0.4, 6); // Кафетерий верх
+        buildWall(-4.2, -8, 0.4, 2); // О2 лево
+        buildWall(-10.2, -3, 0.4, 8); buildWall(-7, -7.2, 6, 0.4); buildWall(-7, 1.2, 6, 0.4); // Библиотека
+        buildWall(-10.2, 5, 0.4, 8); buildWall(-2, 9.2, 16, 0.4); // Нижний зал
+        buildWall(4.2, 7, 0.4, 4); buildWall(7, 9.2, 6, 0.4); // Аппендикс коридора снизу
+        buildWall(10.2, 3, 0.4, 12); buildWall(10.2, -13, 0.4, 4); // Правое крыло перегородки
+        buildWall(13, -15.2, 6, 0.4); buildWall(16.2, -6.5, 0.4, 17); // Энергоблок и туалеты внешние право
 
-        // --- УПРАВЛЕНИЕ КАМЕРОЙ ---
-        let isMouseDown = false;
-        let prevMouseX = 0, prevMouseY = 0;
+        // Межкомнатные стены с ПРОХОДАМИ (ДВЕРЯМИ) строго как на схеме
+        buildWall(4.2, -12, 0.4, 4); // Дверь из Кафетерия в Коридор оставлена свободной (2 метра проход)
+        buildWall(4.2, -7.5, 0.4, 3); // Дверь из О2 в Коридор свободна
+        buildWall(-2.5, -7.2, 3, 0.4); // Стена между О2 и Управлением
+        buildWall(4.2, -3, 0.4, 5); // Стена Управления справа (дверь в коридор снизу свободна)
+        buildWall(-4.2, -3, 0.4, 5); // Дверь в библиотеку сверху свободна
+        buildWall(13, -10.8, 6, 0.4); // Стена между Энергоблоком и Раковиной
+        buildWall(13, -4.8, 6, 0.4);  // Стена между Туалетами и Душевыми
+        buildWall(13, 1.2, 6, 0.4);   // Стена Душевых снизу
 
+        // --- МЕБЕЛЬ И ОБЪЕКТЫ НА КАРТЕ ПО ТВОЕМУ РИСУНКУ ---
+        function buildFurniture(x, z, w, h, d, color, type = "") {
+            const geo = new THREE.BoxGeometry(w, h, d);
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.6 });
+            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(x, h/2, z);
+            mapGroup.add(mesh);
+            if(type) interactibles.push({ mesh, type, radius: 2.0 });
+            else wallsBB.push(new THREE.Box3().setFromObject(mesh)); // Мебель тоже имеет коллизию!
+        }
+
+        // Кафетерий
+        const tableGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.8, 32);
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+        const mainTable = new THREE.Mesh(tableGeo, tableMat); mainTable.position.set(0, 0.4, -12);
+        mapGroup.add(mainTable); wallsBB.push(new THREE.Box3().setFromObject(mainTable));
+        // Красная кнопка по центру стола
+        buildFurniture(0, -12, 0.4, 1.1, 0.4, 0xff0000, "Button");
+
+        // Библиотека (Шкафы с книгами вдоль стен)
+        buildFurniture(-9.5, -3, 0.8, 2.5, 6, 0x5c3a21);
+        buildFurniture(-7, -6.5, 4, 2.5, 0.8, 0x5c3a21, "Books");
+
+        // Управление (Столы и панели)
+        buildFurniture(-3.5, -3, 0.6, 0.9, 4, 0x7f8c8d);
+        buildFurniture(0, -5, 3, 1.0, 0.6, 0x34495e, "AdminPanel");
+
+        // Нижний зал
+        buildFurniture(-5, 4, 3, 0.8, 1.5, 0x8e44ad); // Обычный стол
+        buildFurniture(1, 5, 2, 0.9, 2.5, 0x27ae60, "MapTable"); // Стол с картой
+        buildFurniture(-2, 8.5, 3, 0.6, 0.8, 0xf1c40f); // Диваны желтые
+
+        // Энергоблок (Щиток с цветными проводами)
+        buildFurniture(15.5, -13, 0.5, 1.5, 1.5, 0x2c3e50, "Wires");
+
+        // Санузел и душевые (Раковина, кабинки)
+        buildFurniture(11, -8, 0.6, 1.0, 1.2, 0xffffff, "Sink");
+        buildFurniture(14, -2, 3, 1.8, 0.5, 0xbdc3c7); // Перегородки душей
+
+        // Люки вентиляции (Визуальные плоские квадраты на полу по схеме)
+        function buildVent(x, z) {
+            const geo = new THREE.PlaneGeometry(0.9, 0.9);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 1.0 });
+            const mesh = new THREE.Mesh(geo, mat); mesh.rotation.x = -Math.PI/2; mesh.position.set(x, 0.01, z);
+            mapGroup.add(mesh);
+        }
+        buildVent(0, -8); buildVent(15, -14); buildVent(15, -6); buildVent(15, -1); buildVent(-9, 8);
+
+
+        // --- НАСТРОЙКИ ИГРОКА И УПРАВЛЕНИЯ ---
+        const playerBB = new THREE.Box3();
+        const playerRadius = 0.35;
+        let playerPos = new THREE.Vector3(0, 1.6, -11); // Спавн у стола в Кафетерии
+        let yaw = 0, pitch = 0; camera.position.copy(playerPos);
+
+        // Фиксация КЛАВИАТУРЫ ПО САНДАРТУ КЛАВИШ (РАСКЛАДКА НЕ ВЛИЯЕТ)
+        const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
+        window.addEventListener('keydown', (e) => { if(e.code in keys) keys[e.code] = true; });
+        window.addEventListener('keyup', (e) => { if(e.code in keys) keys[e.code] = false; });
+
+        // Сенсорный/Мышиный Обзор (Камера)
+        let isMouseDown = false; let prevMouseX = 0, prevMouseY = 0;
         window.addEventListener('mousedown', (e) => { isMouseDown = true; prevMouseX = e.clientX; prevMouseY = e.clientY; });
         window.addEventListener('mouseup', () => { isMouseDown = false; });
         window.addEventListener('mousemove', (e) => {
             if (document.pointerLockElement === container || isMouseDown) {
-                const deltaX = e.movementX !== undefined ? e.movementX : (e.clientX - prevMouseX);
-                const deltaY = e.movementY !== undefined ? e.movementY : (e.clientY - prevMouseY);
-                yaw -= deltaX * 0.003; pitch -= deltaY * 0.003;
-                pitch = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, pitch));
+                const dx = e.movementX !== undefined ? e.movementX : (e.clientX - prevMouseX);
+                const dy = e.movementY !== undefined ? e.movementY : (e.clientY - prevMouseY);
+                yaw -= dx * 0.0035; pitch -= dy * 0.0035;
+                pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
                 prevMouseX = e.clientX; prevMouseY = e.clientY;
             }
         });
         container.addEventListener('click', () => { if(document.getElementById('lobby-screen').style.display === 'none') container.requestPointerLock(); });
 
+        // Тач-обзор для мобилок
         let touchLookId = null; let lastTouchX = 0, lastTouchY = 0;
         window.addEventListener('touchstart', (e) => {
             for(let i=0; i<e.changedTouches.length; i++) {
-                let t = e.changedTouches[i];
-                if(t.clientX > window.innerWidth / 2) { touchLookId = t.identifier; lastTouchX = t.clientX; lastTouchY = t.clientY; }
+                let t = e.changedTouches[i]; if(t.clientX > window.innerWidth / 2) { touchLookId = t.identifier; lastTouchX = t.clientX; lastTouchY = t.clientY; }
             }
         });
         window.addEventListener('touchmove', (e) => {
@@ -204,15 +259,15 @@
                 let t = e.touches[i];
                 if(t.identifier === touchLookId) {
                     let dx = t.clientX - lastTouchX; let dy = t.clientY - lastTouchY;
-                    yaw -= dx * 0.007; pitch -= dy * 0.007;
-                    pitch = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, pitch));
+                    yaw -= dx * 0.005; pitch -= dy * 0.005;
+                    pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
                     lastTouchX = t.clientX; lastTouchY = t.clientY;
                 }
             }
         });
         window.addEventListener('touchend', (e) => { for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === touchLookId) touchLookId = null; } });
 
-        // --- ДЖОЙСТИК ХОДЬБЫ ---
+        // Джойстик передвижения
         const joystickZone = document.getElementById('joystick-zone');
         const joystickStick = document.getElementById('joystick-stick');
         let moveVec = { x: 0, z: 0 }; let joystickTouchId = null;
@@ -230,28 +285,40 @@
             moveVec.x = Math.cos(angle) * (dist / 45); moveVec.z = Math.sin(angle) * (dist / 45);
         }
 
-        const keys = { w: false, a: false, s: false, d: false };
-        window.addEventListener('keydown', (e) => { if(e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = true; });
-        window.addEventListener('keyup', (e) => { if(e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = false; });
 
-        // --- СЕТЕВАЯ ЧАСТЬ С КНОПКОЙ СТАРТА (ЛОББИ) ---
+        // --- ПУЛ И ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ ЗАДАНИЙ ---
+        const taskPool = [
+            { id: 't-button', text: '🚨 Проверить Главную кнопку (Кафетерий)', type: 'Button' },
+            { id: 't-books', text: '📚 Расставить учебники (Библиотека)', type: 'Books' },
+            { id: 't-admin', text: '📊 Загрузить данные карт (Управление)', type: 'AdminPanel' },
+            { id: 't-map', text: '🗺 Сверить курс корабля (Нижний стол)', type: 'MapTable' },
+            { id: 't-wires', text: '🔌 Соединить цветные провода (Энергоблок)', type: 'Wires' },
+            { id: 't-sink', text: '🚰 Прочистить фильтр раковины (Санузел)', type: 'Sink' }
+        ];
+        let myTasks = [];
+
+        function generateUniqueTasks() {
+            let shuffled = [...taskPool].sort(() => 0.5 - Math.random());
+            myTasks = shuffled.slice(0, 3); // Выдаем 3 абсолютно случайных квеста каждому игроку индивидуально
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = myTasks.map(t => `<div class="task" id="${t.id}">❌ ${t.text}</div>`).join('');
+        }
+
+
+        // --- СЕТЕВОЙ КОД (МУЛЬТИПЛЕЕР) ---
         let peer = null, connections = [], networkPlayers = {};
         let myId = "", isHost = false, roomCode = "", myUsername = "Игрок", myRole = "Crewmate";
         let lobbyNames = [];
 
         document.getElementById('action-create').onclick = () => {
-            myUsername = document.getElementById('username-input').value || "Хост";
-            isHost = true;
-            roomCode = Math.floor(100 + Math.random() * 900).toString();
-            initNetwork(`amongus-room-${roomCode}`);
+            myUsername = document.getElementById('username-input').value || "Хост"; isHost = true;
+            roomCode = Math.floor(100 + Math.random() * 900).toString(); initNetwork(`among-blueprint-${roomCode}`);
         };
 
         document.getElementById('action-join').onclick = () => {
-            myUsername = document.getElementById('username-input').value || "Друг";
-            const code = document.getElementById('code-input').value;
+            myUsername = document.getElementById('username-input').value || "Друг"; const code = document.getElementById('code-input').value;
             if(code.length !== 3) return alert("Введите 3 цифры кода!");
-            isHost = false; roomCode = code;
-            initNetwork();
+            isHost = false; roomCode = code; initNetwork();
         };
 
         function initNetwork(forcedId = null) {
@@ -259,32 +326,26 @@
             peer.on('open', (id) => {
                 myId = id;
                 document.getElementById('menu-overlay').style.display = 'none';
-                
-                // Включаем экран Лобби ожидания
                 document.getElementById('lobby-screen').style.display = 'flex';
-                document.getElementById('lobby-code-title').innerText = `КОД: ${roomCode}`;
+                document.getElementById('lobby-code-title').innerText = `КОД КОМНАТЫ: ${roomCode}`;
                 
-                lobbyNames.push(myUsername + " (Ты)");
-                rebuildLobbyUI();
+                lobbyNames.push(myUsername); rebuildLobbyList();
 
-                if(!isHost) {
-                    let conn = peer.connect(`amongus-room-${roomCode}`);
-                    bindEvents(conn);
+                if(isHost) {
+                    const sBtn = document.getElementById('start-game-btn'); sBtn.style.display = 'block';
+                    sBtn.onclick = () => {
+                        connections.forEach(c => c.send({ type: 'game-start' }));
+                        startGameSession();
+                        
+                        const listIds = connections.map(c => c.peer); listIds.push(myId);
+                        const impostorId = listIds[Math.floor(Math.random() * listIds.length)];
+                        connections.forEach(c => c.send({ type: 'role', role: c.peer === impostorId ? 'Impostor' : 'Crewmate' }));
+                        setupRole(myId === impostorId ? 'Impostor' : 'Crewmate');
+                    };
                 } else {
-                    // Только создателю видна кнопка СТАРТ
-                    document.getElementById('start-game-btn').style.display = 'block';
-                    document.getElementById('lobby-status').innerText = "Вы — Хост. Ожидайте друзей и жмите Старт.";
+                    document.getElementById('lobby-status').innerText = "Ожидаем старта создателем комнаты...";
+                    let conn = peer.connect(`among-blueprint-${roomCode}`); bindEvents(conn);
                 }
-                
-                // Слушаем нажатие кнопки Старт на Хосте
-                document.getElementById('start-game-btn').onclick = () => {
-                    if (connections.length === 0) {
-                        alert("Нельзя начать игру в одиночку! Подожди, пока зайдут друзья.");
-                        return;
-                    }
-                    startRouletteAndMatch();
-                };
-
                 animateLoop();
             });
             peer.on('connection', (conn) => { bindEvents(conn); });
@@ -294,109 +355,86 @@
             connections.push(conn);
             conn.on('open', () => { conn.send({ type: 'lobby-join', name: myUsername }); });
             conn.on('data', (data) => {
-                // Кто-то зашел в лобби
                 if(data.type === 'lobby-join') {
-                    lobbyNames.push(data.name);
-                    rebuildLobbyUI();
-                    createRemotePlayer(conn.peer, data.name, playerPos.x, playerPos.z);
-                    
-                    // Хост отправляет всем обновленный список имен
-                    if(isHost) {
-                        connections.forEach(c => { c.send({ type: 'lobby-sync-names', names: lobbyNames }); });
-                    }
+                    lobbyNames.push(data.name); rebuildLobbyList();
+                    createRemotePlayer(conn.peer, data.name, 0, -11);
+                    if(isHost) connections.forEach(c => c.send({ type: 'lobby-sync-names', names: lobbyNames }));
                 }
-                // Синхронизация списка имен в лобби для клиентов
                 if(data.type === 'lobby-sync-names') {
-                    lobbyNames = data.names;
-                    rebuildLobbyUI();
+                    lobbyNames = data.names; rebuildLobbyList();
+                    lobbyNames.forEach(n => { if(n !== myUsername) createRemotePlayer(conn.peer, n, 0, -11); });
                 }
-                // Сигнал от хоста: Игра СТАРТОВАЛА
-                if(data.type === 'game-start') {
-                    document.getElementById('lobby-screen').style.display = 'none';
-                    document.getElementById('room-code-display').innerText = `Комната: ${roomCode}`;
-                }
-                // Движения игроков
+                if(data.type === 'game-start') { startGameSession(); }
                 if(data.type === 'sync') {
                     if(networkPlayers[conn.peer]) {
                         networkPlayers[conn.peer].mesh.position.set(data.x, 0.6, data.z);
                         networkPlayers[conn.peer].mesh.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), data.yaw);
                     }
                 }
-                // Роль от рулетки
-                if(data.type === 'role') { setupRole(data.role); }
-                // Убийство
-                if(data.type === 'kill' && data.target === myId) {
-                    myRole = "Ghost"; alert("Тебя убили! Ты стал призраком.");
-                }
+                if(data.type === 'role') setupRole(data.role);
+                if(data.type === 'kill' && data.target === myId) { myRole = "Ghost"; alert("Тебя устранил предатель! Ты стал призраком."); }
             });
         }
 
-        function rebuildLobbyUI() {
-            const listDiv = document.getElementById('lobby-players-list');
-            listDiv.innerHTML = lobbyNames.map(name => `• ${name}`).join('<br>');
-        }
+        function rebuildLobbyList() { document.getElementById('lobby-players-list').innerHTML = lobbyNames.map(n => `• ${n}`).join('<br>'); }
 
-        // --- ЗАПУСК РУЛЕТКИ ХОСТОМ ПО КНОПКЕ ---
-        function startRouletteAndMatch() {
-            // Закрываем лобби у всех
-            connections.forEach(c => { c.send({ type: 'game-start' }); });
+        function startGameSession() {
             document.getElementById('lobby-screen').style.display = 'none';
             document.getElementById('room-code-display').innerText = `Комната: ${roomCode}`;
-
-            // Честная рулетка
-            const list = connections.map(c => c.peer); list.push(myId);
-            const impId = list[Math.floor(Math.random() * list.length)];
-            
-            connections.forEach(c => { c.send({ type: 'role', role: c.peer === impId ? 'Impostor' : 'Crewmate' }); });
-            setupRole(myId === impId ? 'Impostor' : 'Crewmate');
+            generateUniqueTasks();
         }
 
         function setupRole(role) {
-            myRole = role;
-            const scr = document.getElementById('role-screen'); const txt = document.getElementById('role-text');
+            myRole = role; const scr = document.getElementById('role-screen'); const txt = document.getElementById('role-text');
             scr.style.display = 'flex';
             if(myRole === 'Impostor') { txt.innerText = "ПРЕДАТЕЛЬ"; txt.style.color = "#ff3333"; document.getElementById('btn-kill').style.display = 'flex'; }
-            else { txt.innerText = "ЭКИПАЖ"; txt.style.color = "#2ecc71"; }
-            setTimeout(() => { scr.style.display = 'none'; if(!isMobile) container.requestPointerLock(); }, 2500);
+            else { txt.innerText = "ЧЛЕН ЭКИПАЖА"; txt.style.color = "#2ecc71"; }
+            setTimeout(() => { scr.style.display = 'none'; }, 2000);
         }
 
         function createRemotePlayer(id, name, x, z) {
             if(networkPlayers[id]) return;
             const g = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 16);
-            const m = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff });
+            const m = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.5 });
             const mesh = new THREE.Mesh(g, m); mesh.position.set(x, 0.6, z);
             
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-            canvas.width = 256; canvas.height = 64; ctx.fillStyle = '#fff'; ctx.font = '30px sans-serif'; ctx.textAlign = 'center';
+            canvas.width = 256; canvas.height = 64; ctx.fillStyle = '#ffffff'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center';
             ctx.fillText(name, 128, 40);
             const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
-            spr.position.y = 1.1; spr.scale.set(2, 0.5, 1); mesh.add(spr);
+            spr.position.y = 1.2; spr.scale.set(1.8, 0.45, 1); mesh.add(spr);
 
             scene.add(mesh); networkPlayers[id] = { mesh, name };
             document.getElementById('player-count').innerText = (Object.keys(networkPlayers).length + 1);
         }
 
-        // --- ИГРОВОЙ ЦИКЛ ---
+        // ---ИГРОВОЙ ДВИЖОК С АДЕКВАТНОЙ СКОРОСТЬЮ И СКОЛЬЖЕНИЕМ---
         let lastSentX = 0, lastSentZ = 0;
         function animateLoop() {
             requestAnimationFrame(animateLoop);
-
-            if(document.getElementById('lobby-screen').style.display !== 'none') {
-                renderer.render(scene, camera);
-                return; // Если мы в лобби, персонаж не бегает
-            }
+            if(document.getElementById('lobby-screen').style.display !== 'none') { renderer.render(scene, camera); return; }
 
             if(joystickTouchId === null) {
                 moveVec = { x: 0, z: 0 };
-                if(keys.w) moveVec.z = 1; if(keys.s) moveVec.z = -1;
-                if(keys.a) moveVec.x = -1; if(keys.d) moveVec.x = 1;
+                if(keys.KeyW) moveVec.z = 1; if(keys.KeyS) moveVec.z = -1;
+                if(keys.KeyA) moveVec.x = -1; if(keys.KeyD) moveVec.x = 1;
             }
 
             let forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
             let side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-            playerPos.addScaledVector(forward, moveVec.z * 0.08); playerPos.addScaledVector(side, moveVec.x * 0.08);
+            
+            let oldPos = playerPos.clone();
+            const normalSpeed = 0.052; // Комфортная скорость ходьбы (без безумных улетов)
 
-            playerPos.x = Math.max(-9, Math.min(14, playerPos.x)); playerPos.z = Math.max(-14, Math.min(8, playerPos.z));
+            // Движение и плавное скольжение вдоль стен по X
+            playerPos.x += forward.x * moveVec.z * normalSpeed + side.x * moveVec.x * normalSpeed;
+            playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius * 2, 2, playerRadius * 2));
+            for (let i = 0; i < wallsBB.length; i++) { if (playerBB.intersectsBox(wallsBB[i])) { playerPos.x = oldPos.x; break; } }
+
+            // Движение и плавное скольжение вдоль стен по Z
+            playerPos.z += forward.z * moveVec.z * normalSpeed + side.z * moveVec.x * normalSpeed;
+            playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius * 2, 2, playerRadius * 2));
+            for (let i = 0; i < wallsBB.length; i++) { if (playerBB.intersectsBox(wallsBB[i])) { playerPos.z = oldPos.z; break; } }
 
             camera.position.copy(playerPos);
             camera.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); camera.rotateX(pitch);
@@ -407,25 +445,29 @@
                 lastSentX = playerPos.x; lastSentZ = playerPos.z;
             }
 
-            // Таски
-            let near = false;
+            // Обработка взаимодействия с заданиями
+            let activeInteractible = null;
             interactibles.forEach(p => {
                 if(camera.position.distanceTo(p.mesh.position) < p.radius) {
-                    near = true; document.getElementById('btn-use').disabled = false;
-                    document.getElementById('btn-use').onclick = () => {
-                        document.getElementById('task-modal').style.display = 'flex';
-                        document.getElementById('btn-task-done').onclick = () => {
-                            if(p.type === "Button") document.getElementById('t-button').classList.add('done');
-                            if(p.type === "Wires") document.getElementById('t-wires').classList.add('done');
-                            if(p.type === "Books") document.getElementById('t-books').classList.add('done');
-                            document.getElementById('task-modal').style.display = 'none';
-                        };
-                    };
+                    // Проверяем, есть ли этот тип объекта в списке личных заданий игрока
+                    let matchTask = myTasks.find(t => t.type === p.type);
+                    if(matchTask) activeInteractible = matchTask;
                 }
             });
-            if(!near) document.getElementById('btn-use').disabled = true;
 
-            // Kill кнопка
+            if(activeInteractible) {
+                const useBtn = document.getElementById('btn-use');
+                useBtn.disabled = false;
+                useBtn.onclick = () => {
+                    document.getElementById('task-modal').style.display = 'flex';
+                    document.getElementById('btn-task-done').onclick = () => {
+                        document.getElementById(activeInteractible.id).classList.add('done');
+                        document.getElementById('task-modal').style.display = 'none';
+                    };
+                };
+            } else { document.getElementById('btn-use').disabled = true; }
+
+            // Логика кнопки KILL для предателя
             if(myRole === "Impostor") {
                 let victimId = null;
                 Object.keys(networkPlayers).forEach(id => { if(camera.position.distanceTo(networkPlayers[id].mesh.position) < 2.0) victimId = id; });
@@ -433,7 +475,7 @@
                     document.getElementById('btn-kill').style.opacity = "1";
                     document.getElementById('btn-kill').onclick = () => {
                         connections.forEach(c => { if(c.peer === victimId) c.send({ type: 'kill', target: victimId }); });
-                        networkPlayers[victimId].mesh.rotation.z = Math.PI/2;
+                        networkPlayers[victimId].mesh.rotation.z = Math.PI / 2; // Кладём цилиндр игрока на бок
                     };
                 } else { document.getElementById('btn-kill').style.opacity = "0.3"; document.getElementById('btn-kill').onclick = null; }
             }
