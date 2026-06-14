@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Among Us 3D: Friends Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <!-- Список задач -->
+    <div id="tasks-list">
+        <h3>Задания экипажа:</h3>
+        <div class="task-item" id="task-wires">❌ Соединить провода (Энергоблок)</div>
+        <div class="task-item" id="task-button">❌ Проверить Красную Кнопку (Зал)</div>
+        <div class="task-item" id="task-books">❌ Расставить книги (Библиотека)</div>
+    </div>
+
+    <!-- Игровой контейнер -->
+    <div id="game-container"></div>
+
+    <!-- Мобильное управление (Джойстик) -->
+    <div id="joystick-zone">
+        <div id="joystick-stick"></div>
+    </div>
+
+    <!-- Мобильная кнопка действия -->
+    <button id="action-btn" disabled>ИСПОЛЬЗОВАТЬ</button>
+
+    <!-- ЭКРАН МИНИ-ИГРЫ (Провода) -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Мини-игра</h2>
+            <div id="wires-game-container" style="display:none; margin-top:20px;">
+                <p>Соедините желтый провод электросети!</p>
+                <div style="display:flex; justify-content:space-between; margin-top:30px;">
+                    <div style="width:30px; height:30px; background:yellow; border-radius:50%;"></div>
+                    <button id="connect-wire-btn" style="padding:10px; background:#28a745; color:white; border:none; border-radius:5px;">Соединить</button>
+                    <div style="width:30px; height:30px; background:yellow; border-radius:50%;"></div>
+                </div>
+            </div>
+            <div id="generic-task-container" style="display:none; margin-top:20px;">
+                <p>Выполняется калибровка систем...</p>
+                <button id="hold-task-btn" style="padding:20px; background:#007bff; color:white; border:none; border-radius:10px; width:100%;">УДЕРЖИВАТЬ ДЛЯ ВЫПОЛНЕНИЯ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ГОЛОСОВАНИЯ -->
+    <div id="voting-modal" class="modal">
+        <div class="modal-content" style="background:#111; color:white; text-align:center;">
+            <h2>КТО ПРЕДАТЕЛЬ? (Голосование)</h2>
+            <p>Обсудите с друзьями в дискорде/чате и сделайте выбор:</p>
+            <div id="players-list" style="margin:20px 0; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <!-- Ники друзей будут подставляться сюда динамически -->
+            </div>
+            <button id="skip-vote-btn" style="padding:10px 20px; background:#555; color:white; border:none;">Пропустить</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
