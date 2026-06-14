@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Among Us 3D: Fixed Controls</title>
+    <title>Among Us 3D: Lobby Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
@@ -11,7 +11,7 @@
         body, html { width: 100%; height: 100%; overflow: hidden; background-color: #05050a; font-family: sans-serif; }
         #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* МЕНЮ */
+        /* МЕНЮ ПОДКЛЮЧЕНИЯ */
         #menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, #0f1026 0%, #030308 100%);
@@ -24,6 +24,16 @@
         .btn-create { background: #28a745; }
         .btn-join { background: #007bff; }
 
+        /* ЭКРАН ИГРОВОГО ЛОББИ (ОЖИДАНИЕ ИГРОКОВ) */
+        #lobby-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 11, 28, 0.95); z-index: 180;
+            flex-direction: column; align-items: center; justify-content: center; color: white;
+        }
+        .lobby-box { background: #11121c; border: 2px solid #334; border-radius: 15px; padding: 25px; width: 85%; max-width: 400px; text-align: center; }
+        #lobby-status { font-size: 18px; color: #aaa; margin: 15px 0; }
+        #start-game-btn { display: none; width: 100%; padding: 15px; background: #28a745; color: white; font-weight: bold; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; box-shadow: 0 0 15px rgba(40,167,69,0.4); margin-top: 15px; }
+
         /* РУЛЕТКА РОЛЕЙ */
         #role-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 150; align-items: center; justify-content: center; flex-direction: column; }
         #role-text { font-size: 50px; font-weight: 900; letter-spacing: 5px; }
@@ -35,7 +45,7 @@
         .task.done { color: #2ecc71; text-decoration: line-through; }
         #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: rgba(255,255,255,0.6); border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
 
-        /* УПРАВЛЕНИЕ ДЛЯ СЕНСОРА */
+        /* УПРАВЛЕНИЕ */
         #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
         #joystick-stick { width: 50px; height: 50px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; pointer-events: none; }
         
@@ -49,6 +59,7 @@
 </head>
 <body>
 
+    <!-- Стартовое Меню -->
     <div id="menu-overlay">
         <div class="menu-box">
             <h1>AMONG US 3D</h1>
@@ -60,8 +71,23 @@
         </div>
     </div>
 
+    <!-- Новое Лобби Ожидания -->
+    <div id="lobby-screen">
+        <div class="lobby-box">
+            <h2 id="lobby-code-title" style="color: #f1c40f; font-size: 28px;">КОД: ---</h2>
+            <p id="lobby-status">Ожидание игроков...</p>
+            <div style="margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; text-align: left;">
+                <p style="color: #667; font-size: 12px; margin-bottom: 5px;">Игроки в лобби:</p>
+                <div id="lobby-players-list" style="font-size: 14px; font-family: monospace; color: #2ecc71;">• Ты вошел</div>
+            </div>
+            <button id="start-game-btn">СТАРТ ИГРЫ 🚀</button>
+        </div>
+    </div>
+
+    <!-- Экран Рулетки Ролей -->
     <div id="role-screen"><h1 id="role-text"></h1></div>
 
+    <!-- HUD -->
     <div id="crosshair"></div>
     <div id="hud">
         <div id="room-code-display">Комната: Ожидание...</div>
@@ -73,7 +99,7 @@
 
     <div id="game-container"></div>
 
-    <!-- Обновленный рабочий тач-интерфейс -->
+    <!-- Тач-интерфейс -->
     <div id="joystick-zone"><div id="joystick-stick"></div></div>
     
     <div class="action-group">
@@ -121,7 +147,7 @@
 
             const wTop = new THREE.Mesh(hWall, wallMat); wTop.position.set(x, 1.6, z - h/2); mapGroup.add(wTop);
             const wBot = new THREE.Mesh(hWall, wallMat); wBot.position.set(x, 1.6, z + h/2); mapGroup.add(wBot);
-            const wL = new THREE.Mesh(vWall, wallMat); wL.position.set(x - w/2, 1.6, z); mapGroup.add(wL);
+            const wL = new THREE.Mesh(vWall, wallMat); wL.position.set(x - w/2, 1.6, z); sceneGroup = mapGroup.add(wL);
             const wR = new THREE.Mesh(vWall, wallMat); wR.position.set(x + w/2, 1.6, z); mapGroup.add(wR);
         }
 
@@ -149,117 +175,69 @@
         let yaw = 0, pitch = 0;
         camera.position.copy(playerPos);
 
-        // --- ИСПРАВЛЕННОЕ УПРАВЛЕНИЕ (МЫШЬ + ТАЧПАД) ---
+        // --- УПРАВЛЕНИЕ КАМЕРОЙ ---
         let isMouseDown = false;
         let prevMouseX = 0, prevMouseY = 0;
 
-        // Поворот камеры на ПК (Просто зажав мышку или кликнув)
         window.addEventListener('mousedown', (e) => { isMouseDown = true; prevMouseX = e.clientX; prevMouseY = e.clientY; });
         window.addEventListener('mouseup', () => { isMouseDown = false; });
         window.addEventListener('mousemove', (e) => {
             if (document.pointerLockElement === container || isMouseDown) {
                 const deltaX = e.movementX !== undefined ? e.movementX : (e.clientX - prevMouseX);
                 const deltaY = e.movementY !== undefined ? e.movementY : (e.clientY - prevMouseY);
-                
-                yaw -= deltaX * 0.003;
-                pitch -= deltaY * 0.003;
+                yaw -= deltaX * 0.003; pitch -= deltaY * 0.003;
                 pitch = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, pitch));
-                
                 prevMouseX = e.clientX; prevMouseY = e.clientY;
             }
         });
-        container.addEventListener('click', () => { container.requestPointerLock(); });
+        container.addEventListener('click', () => { if(document.getElementById('lobby-screen').style.display === 'none') container.requestPointerLock(); });
 
-        // Поворот камеры на смартфонах (Правая часть экрана)
-        let touchLookId = null;
-        let lastTouchX = 0, lastTouchY = 0;
-
+        let touchLookId = null; let lastTouchX = 0, lastTouchY = 0;
         window.addEventListener('touchstart', (e) => {
             for(let i=0; i<e.changedTouches.length; i++) {
                 let t = e.changedTouches[i];
-                if(t.clientX > window.innerWidth / 2) { // Правая сторона экрана
-                    touchLookId = t.identifier;
-                    lastTouchX = t.clientX; lastTouchY = t.clientY;
-                }
+                if(t.clientX > window.innerWidth / 2) { touchLookId = t.identifier; lastTouchX = t.clientX; lastTouchY = t.clientY; }
             }
         });
-
         window.addEventListener('touchmove', (e) => {
             for(let i=0; i<e.touches.length; i++) {
                 let t = e.touches[i];
                 if(t.identifier === touchLookId) {
-                    let dx = t.clientX - lastTouchX;
-                    let dy = t.clientY - lastTouchY;
-                    
-                    yaw -= dx * 0.007;
-                    pitch -= dy * 0.007;
+                    let dx = t.clientX - lastTouchX; let dy = t.clientY - lastTouchY;
+                    yaw -= dx * 0.007; pitch -= dy * 0.007;
                     pitch = Math.max(-Math.PI/2.4, Math.min(Math.PI/2.4, pitch));
-                    
                     lastTouchX = t.clientX; lastTouchY = t.clientY;
                 }
             }
         });
+        window.addEventListener('touchend', (e) => { for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === touchLookId) touchLookId = null; } });
 
-        window.addEventListener('touchend', (e) => {
-            for(let i=0; i<e.changedTouches.length; i++) {
-                if(e.changedTouches[i].identifier === touchLookId) touchLookId = null;
-            }
-        });
-
-        // --- ИСПРАВЛЕННЫЙ ДЖОЙСТИК ХОДЬБЫ (ЛЕВАЯ РУКА) ---
+        // --- ДЖОЙСТИК ХОДЬБЫ ---
         const joystickZone = document.getElementById('joystick-zone');
         const joystickStick = document.getElementById('joystick-stick');
-        let moveVec = { x: 0, z: 0 };
-        let joystickTouchId = null;
+        let moveVec = { x: 0, z: 0 }; let joystickTouchId = null;
 
-        joystickZone.addEventListener('touchstart', (e) => {
-            let t = e.changedTouches[0];
-            joystickTouchId = t.identifier;
-            calculateJoystick(t);
-        });
-
-        window.addEventListener('touchmove', (e) => {
-            for(let i=0; i<e.touches.length; i++) {
-                let t = e.touches[i];
-                if(t.identifier === joystickTouchId) calculateJoystick(t);
-            }
-        });
-
-        window.addEventListener('touchend', (e) => {
-            for(let i=0; i<e.changedTouches.length; i++) {
-                if(e.changedTouches[i].identifier === joystickTouchId) {
-                    joystickTouchId = null;
-                    joystickStick.style.transform = `translate(0px, 0px)`;
-                    moveVec = { x: 0, z: 0 };
-                }
-            }
-        });
+        joystickZone.addEventListener('touchstart', (e) => { joystickTouchId = e.changedTouches[0].identifier; calculateJoystick(e.changedTouches[0]); });
+        window.addEventListener('touchmove', (e) => { for(let i=0; i<e.touches.length; i++) { if(e.touches[i].identifier === joystickTouchId) calculateJoystick(e.touches[i]); } });
+        window.addEventListener('touchend', (e) => { for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joystickTouchId) { joystickTouchId = null; joystickStick.style.transform = `translate(0px, 0px)`; moveVec = { x: 0, z: 0 }; } } });
 
         function calculateJoystick(t) {
             const rect = joystickZone.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            let dx = t.clientX - centerX;
-            let dy = t.clientY - centerY;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 45);
-            const angle = Math.atan2(dy, dx);
-            
+            const centerX = rect.left + rect.width / 2; const centerY = rect.top + rect.height / 2;
+            let dx = t.clientX - centerX; let dy = t.clientY - centerY;
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 45); const angle = Math.atan2(dy, dx);
             joystickStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-            
-            // Записываем вектор скорости
-            moveVec.x = Math.cos(angle) * (dist / 45);
-            moveVec.z = Math.sin(angle) * (dist / 45);
+            moveVec.x = Math.cos(angle) * (dist / 45); moveVec.z = Math.sin(angle) * (dist / 45);
         }
 
-        // Клавиатура для ПК
         const keys = { w: false, a: false, s: false, d: false };
         window.addEventListener('keydown', (e) => { if(e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = true; });
         window.addEventListener('keyup', (e) => { if(e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = false; });
 
-        // --- СЕТЕВАЯ ЧАСТЬ (PEERJS ИЗ EARTH WORLD) ---
+        // --- СЕТЕВАЯ ЧАСТЬ С КНОПКОЙ СТАРТА (ЛОББИ) ---
         let peer = null, connections = [], networkPlayers = {};
         let myId = "", isHost = false, roomCode = "", myUsername = "Игрок", myRole = "Crewmate";
+        let lobbyNames = [];
 
         document.getElementById('action-create').onclick = () => {
             myUsername = document.getElementById('username-input').value || "Хост";
@@ -272,8 +250,7 @@
             myUsername = document.getElementById('username-input').value || "Друг";
             const code = document.getElementById('code-input').value;
             if(code.length !== 3) return alert("Введите 3 цифры кода!");
-            isHost = false;
-            roomCode = code;
+            isHost = false; roomCode = code;
             initNetwork();
         };
 
@@ -282,65 +259,113 @@
             peer.on('open', (id) => {
                 myId = id;
                 document.getElementById('menu-overlay').style.display = 'none';
-                document.getElementById('room-code-display').innerText = `Комната: ${roomCode}`;
+                
+                // Включаем экран Лобби ожидания
+                document.getElementById('lobby-screen').style.display = 'flex';
+                document.getElementById('lobby-code-title').innerText = `КОД: ${roomCode}`;
+                
+                lobbyNames.push(myUsername + " (Ты)");
+                rebuildLobbyUI();
+
                 if(!isHost) {
                     let conn = peer.connect(`amongus-room-${roomCode}`);
                     bindEvents(conn);
                 } else {
-                    startRoulette();
+                    // Только создателю видна кнопка СТАРТ
+                    document.getElementById('start-game-btn').style.display = 'block';
+                    document.getElementById('lobby-status').innerText = "Вы — Хост. Ожидайте друзей и жмите Старт.";
                 }
-                animateLoop(); // Запуск отрисовки
+                
+                // Слушаем нажатие кнопки Старт на Хосте
+                document.getElementById('start-game-btn').onclick = () => {
+                    if (connections.length === 0) {
+                        alert("Нельзя начать игру в одиночку! Подожди, пока зайдут друзья.");
+                        return;
+                    }
+                    startRouletteAndMatch();
+                };
+
+                animateLoop();
             });
             peer.on('connection', (conn) => { bindEvents(conn); });
         }
 
         function bindEvents(conn) {
             connections.push(conn);
-            conn.on('open', () => { conn.send({ type: 'join', name: myUsername, x: playerPos.x, z: playerPos.z }); });
+            conn.on('open', () => { conn.send({ type: 'lobby-join', name: myUsername }); });
             conn.on('data', (data) => {
-                if(data.type === 'join') { createRemotePlayer(conn.peer, data.name, data.x, data.z); }
+                // Кто-то зашел в лобби
+                if(data.type === 'lobby-join') {
+                    lobbyNames.push(data.name);
+                    rebuildLobbyUI();
+                    createRemotePlayer(conn.peer, data.name, playerPos.x, playerPos.z);
+                    
+                    // Хост отправляет всем обновленный список имен
+                    if(isHost) {
+                        connections.forEach(c => { c.send({ type: 'lobby-sync-names', names: lobbyNames }); });
+                    }
+                }
+                // Синхронизация списка имен в лобби для клиентов
+                if(data.type === 'lobby-sync-names') {
+                    lobbyNames = data.names;
+                    rebuildLobbyUI();
+                }
+                // Сигнал от хоста: Игра СТАРТОВАЛА
+                if(data.type === 'game-start') {
+                    document.getElementById('lobby-screen').style.display = 'none';
+                    document.getElementById('room-code-display').innerText = `Комната: ${roomCode}`;
+                }
+                // Движения игроков
                 if(data.type === 'sync') {
                     if(networkPlayers[conn.peer]) {
                         networkPlayers[conn.peer].mesh.position.set(data.x, 0.6, data.z);
                         networkPlayers[conn.peer].mesh.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), data.yaw);
                     }
                 }
+                // Роль от рулетки
                 if(data.type === 'role') { setupRole(data.role); }
+                // Убийство
                 if(data.type === 'kill' && data.target === myId) {
-                    myRole = "Ghost"; alert("Тебя убили! Ты стал невидимым призраком.");
+                    myRole = "Ghost"; alert("Тебя убили! Ты стал призраком.");
                 }
-            });
-            conn.on('close', () => {
-                if(networkPlayers[conn.peer]) { scene.remove(networkPlayers[conn.peer].mesh); delete networkPlayers[conn.peer]; }
-                document.getElementById('player-count').innerText = (Object.keys(networkPlayers).length + 1);
             });
         }
 
-        function startRoulette() {
-            setTimeout(() => {
-                const list = connections.map(c => c.peer); list.push(myId);
-                const impId = list[Math.floor(Math.random() * list.length)];
-                connections.forEach(c => { c.send({ type: 'role', role: c.peer === impId ? 'Impostor' : 'Crewmate' }); });
-                setupRole(myId === impId ? 'Impostor' : 'Crewmate');
-            }, 6000); // 6 секунд на вход друзей перед рулеткой ролей
+        function rebuildLobbyUI() {
+            const listDiv = document.getElementById('lobby-players-list');
+            listDiv.innerHTML = lobbyNames.map(name => `• ${name}`).join('<br>');
+        }
+
+        // --- ЗАПУСК РУЛЕТКИ ХОСТОМ ПО КНОПКЕ ---
+        function startRouletteAndMatch() {
+            // Закрываем лобби у всех
+            connections.forEach(c => { c.send({ type: 'game-start' }); });
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('room-code-display').innerText = `Комната: ${roomCode}`;
+
+            // Честная рулетка
+            const list = connections.map(c => c.peer); list.push(myId);
+            const impId = list[Math.floor(Math.random() * list.length)];
+            
+            connections.forEach(c => { c.send({ type: 'role', role: c.peer === impId ? 'Impostor' : 'Crewmate' }); });
+            setupRole(myId === impId ? 'Impostor' : 'Crewmate');
         }
 
         function setupRole(role) {
             myRole = role;
-            const scr = document.getElementById('role-screen');
-            const txt = document.getElementById('role-text');
+            const scr = document.getElementById('role-screen'); const txt = document.getElementById('role-text');
             scr.style.display = 'flex';
             if(myRole === 'Impostor') { txt.innerText = "ПРЕДАТЕЛЬ"; txt.style.color = "#ff3333"; document.getElementById('btn-kill').style.display = 'flex'; }
             else { txt.innerText = "ЭКИПАЖ"; txt.style.color = "#2ecc71"; }
-            setTimeout(() => { scr.style.display = 'none'; }, 2500);
+            setTimeout(() => { scr.style.display = 'none'; if(!isMobile) container.requestPointerLock(); }, 2500);
         }
 
         function createRemotePlayer(id, name, x, z) {
+            if(networkPlayers[id]) return;
             const g = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 16);
             const m = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff });
             const mesh = new THREE.Mesh(g, m); mesh.position.set(x, 0.6, z);
             
-            // Никнейм
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
             canvas.width = 256; canvas.height = 64; ctx.fillStyle = '#fff'; ctx.font = '30px sans-serif'; ctx.textAlign = 'center';
             ctx.fillText(name, 128, 40);
@@ -351,44 +376,38 @@
             document.getElementById('player-count').innerText = (Object.keys(networkPlayers).length + 1);
         }
 
-        // --- ДВИЖЕНИЕ И ИГРОВОЙ ЦИКЛ ---
+        // --- ИГРОВОЙ ЦИКЛ ---
         let lastSentX = 0, lastSentZ = 0;
-
         function animateLoop() {
             requestAnimationFrame(animateLoop);
 
-            // Обработка ходьбы (Клавиатура ПК)
+            if(document.getElementById('lobby-screen').style.display !== 'none') {
+                renderer.render(scene, camera);
+                return; // Если мы в лобби, персонаж не бегает
+            }
+
             if(joystickTouchId === null) {
                 moveVec = { x: 0, z: 0 };
                 if(keys.w) moveVec.z = 1; if(keys.s) moveVec.z = -1;
                 if(keys.a) moveVec.x = -1; if(keys.d) moveVec.x = 1;
             }
 
-            // Направление движения с учетом взгляда камеры
             let forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
             let side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-            let currentSpeed = 0.08;
+            playerPos.addScaledVector(forward, moveVec.z * 0.08); playerPos.addScaledVector(side, moveVec.x * 0.08);
 
-            playerPos.addScaledVector(forward, moveVec.z * currentSpeed);
-            playerPos.addScaledVector(side, moveVec.x * currentSpeed);
+            playerPos.x = Math.max(-9, Math.min(14, playerPos.x)); playerPos.z = Math.max(-14, Math.min(8, playerPos.z));
 
-            // Границы твоих комнат
-            playerPos.x = Math.max(-9, Math.min(14, playerPos.x));
-            playerPos.z = Math.max(-14, Math.min(8, playerPos.z));
-
-            // Обновляем камеру
             camera.position.copy(playerPos);
-            camera.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-            camera.rotateX(pitch);
+            camera.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); camera.rotateX(pitch);
             flashlight.position.copy(playerPos);
 
-            // Отправка координат в сеть при ходьбе
             if(Math.abs(playerPos.x - lastSentX) > 0.01 || Math.abs(playerPos.z - lastSentZ) > 0.01) {
                 connections.forEach(c => { c.send({ type: 'sync', x: playerPos.x, z: playerPos.z, yaw: yaw }); });
                 lastSentX = playerPos.x; lastSentZ = playerPos.z;
             }
 
-            // Проверка квестов вокруг
+            // Таски
             let near = false;
             interactibles.forEach(p => {
                 if(camera.position.distanceTo(p.mesh.position) < p.radius) {
@@ -406,12 +425,10 @@
             });
             if(!near) document.getElementById('btn-use').disabled = true;
 
-            // Кнопка KILL для Импостера
+            // Kill кнопка
             if(myRole === "Impostor") {
                 let victimId = null;
-                Object.keys(networkPlayers).forEach(id => {
-                    if(camera.position.distanceTo(networkPlayers[id].mesh.position) < 2.0) victimId = id;
-                });
+                Object.keys(networkPlayers).forEach(id => { if(camera.position.distanceTo(networkPlayers[id].mesh.position) < 2.0) victimId = id; });
                 if(victimId) {
                     document.getElementById('btn-kill').style.opacity = "1";
                     document.getElementById('btn-kill').onclick = () => {
