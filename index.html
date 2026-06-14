@@ -3,84 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Among Us 3D: Карта по Чертежу</title>
+    <title>Among Us 3D: Neon Spaceship Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #020205; font-family: sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #05050a; font-family: 'Segoe UI', Roboto, sans-serif; }
         #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* МЕНЮ ВХОДА */
+        /* МЕНЮ */
         #menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #151633 0%, #05050a 100%);
+            background: radial-gradient(circle at center, #0a0b16 0%, #020205 100%);
             z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .menu-box { background: rgba(255,255,255,0.06); padding: 35px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px); text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { font-size: 32px; color: #ff3333; margin-bottom: 20px; text-shadow: 0 0 15px rgba(255,51,51,0.4); letter-spacing: 2px; }
-        input { width: 100%; padding: 14px 20px; margin: 10px 0; border-radius: 25px; border: 1px solid #333; background: #0c0d14; color: white; font-size: 16px; text-align: center; outline: none; transition: 0.2s; }
-        input:focus { border-color: #ff3333; }
-        .menu-btn { width: 100%; padding: 14px; margin-top: 12px; border-radius: 25px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; }
-        .btn-create { background: #2ecc71; box-shadow: 0 4px 12px rgba(46,204,113,0.2); }
-        .btn-join { background: #3498db; box-shadow: 0 4px 12px rgba(52,152,219,0.2); }
-        .menu-btn:hover { transform: scale(1.02); }
+        .menu-box { background: rgba(15, 17, 28, 0.75); padding: 40px; border-radius: 24px; border: 1px solid #00ffcc33; backdrop-filter: blur(20px); text-align: center; width: 90%; max-width: 400px; box-shadow: 0 0 40px rgba(0, 255, 204, 0.15); }
+        h1 { font-size: 28px; color: #00ffcc; margin-bottom: 25px; text-shadow: 0 0 15px rgba(0,255,204,0.4); letter-spacing: 3px; font-weight: 800; }
+        input { width: 100%; padding: 14px 20px; margin: 12px 0; border-radius: 30px; border: 1px solid #222538; background: #090a10; color: white; font-size: 16px; text-align: center; outline: none; transition: 0.3s; }
+        input:focus { border-color: #00ffcc; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+        .menu-btn { width: 100%; padding: 14px; margin-top: 12px; border-radius: 30px; border: none; font-size: 15px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-create { background: #00ffcc; color: #05050a; box-shadow: 0 4px 20px rgba(0,255,204,0.3); }
+        .btn-join { background: #1f2438; border: 1px solid #3a4161; color: #a0a5c0; }
+        .menu-btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
-        /* ЛОББИ ПОДКЛЮЧЕНИЯ */
+        /* ЛОББИ */
         #lobby-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(7, 8, 18, 0.98); z-index: 180;
-            flex-direction: column; align-items: center; justify-content: center; color: white;
+            background: #040509; z-index: 180; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .lobby-box { background: #11121c; border: 2px solid #232538; border-radius: 20px; padding: 30px; width: 85%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-        #lobby-status { font-size: 15px; color: #8e92a7; margin: 12px 0; }
-        #lobby-players-list { text-align: left; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; max-height: 180px; overflow-y: auto; font-family: monospace; font-size: 15px; margin-bottom: 20px; border: 1px solid #1f2130; color: #2ecc71; }
-        #start-game-btn { width: 100%; padding: 15px; background: #e74c3c; color: white; font-weight: bold; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; display: none; box-shadow: 0 0 20px rgba(231,76,60,0.4); }
+        .lobby-box { background: #0d0f18; border: 1px solid #1f253d; border-radius: 24px; padding: 35px; width: 85%; max-width: 420px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
+        #lobby-status { font-size: 14px; color: #6c7293; margin: 15px 0; }
+        #lobby-players-list { text-align: left; background: #06070a; padding: 18px; border-radius: 16px; max-height: 180px; overflow-y: auto; font-family: monospace; font-size: 15px; margin-bottom: 25px; border: 1px solid #161a2b; color: #00ffcc; }
+        #start-game-btn { width: 100%; padding: 16px; background: #ff0055; color: white; font-weight: bold; border: none; border-radius: 16px; font-size: 17px; cursor: pointer; display: none; box-shadow: 0 0 25px rgba(255,0,85,0.4); text-transform: uppercase; }
 
-        /* РУЛЕТКА РОЛЕЙ */
+        /* ЭКРАН РОЛИ */
         #role-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 150; align-items: center; justify-content: center; flex-direction: column; }
-        #role-text { font-size: 48px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        #role-text { font-size: 42px; font-weight: 900; letter-spacing: 8px; }
 
-        /* ИГРОВОЙ ИНТЕРФЕЙС (HUD) */
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(10,11,20,0.85); padding: 18px; border-radius: 12px; border: 1px solid #232538; color: #fff; pointer-events: none; font-family: 'Courier New', monospace; min-width: 250px; }
-        #room-code-display { color: #f1c40f; font-weight: bold; font-size: 16px; margin-bottom: 3px; }
-        #tasks-container { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-        .task { color: #ff6b6b; font-size: 13px; font-weight: bold; }
-        .task.done { color: #2ecc71; text-decoration: line-through; opacity: 0.6; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
+        /* HUD ИНТЕРФЕЙС */
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(7,9,15,0.85); padding: 20px; border-radius: 16px; border: 1px solid #161b2e; color: #fff; pointer-events: none; font-family: monospace; min-width: 260px; backdrop-filter: blur(10px); }
+        #room-code-display { color: #00ffcc; font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+        #tasks-container { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .task { color: #ff4a70; font-size: 13px; font-weight: bold; }
+        .task.done { color: #00ffcc; text-decoration: line-through; opacity: 0.5; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: rgba(0,255,255,0.6); border-radius: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; }
 
-        /* УПРАВЛЕНИЕ ДЛЯ ТЕЛЕФОНОВ */
-        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
-        #joystick-stick { width: 50px; height: 50px; background: rgba(255,255,255,0.7); border-radius: 50%; position: absolute; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* МОБИЛЬНОЕ УПРАВЛЕНИЕ */
+        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 110px; height: 110px; background: rgba(255,255,255,0.03); border: 2px solid rgba(0,255,204,0.15); border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
+        #joystick-stick { width: 45px; height: 45px; background: rgba(0, 255, 204, 0.4); border: 1px solid #00ffcc; border-radius: 50%; position: absolute; pointer-events: none; backdrop-filter: blur(4px); }
         .action-group { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
-        .action-btn { width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 15px; border: 3px solid #3b3d54; background: #171821; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(0,0,0,0.4); transition: 0.1s; }
-        .action-btn:active { transform: scale(0.95); }
-        #btn-kill { display: none; background: #c0392b; border-color: #e74c3c; }
+        .action-btn { width: 75px; height: 75px; border-radius: 50%; color: white; font-weight: bold; font-size: 14px; border: 2px solid #1f253d; background: #0c0e17; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.5); transition: 0.1s; text-transform: uppercase; }
+        #btn-use { border-color: #00ffcc; color: #00ffcc; }
+        #btn-use:disabled { opacity: 0.3; border-color: #1f253d; color: white; }
+        #btn-kill { display: none; background: #ff0055; border-color: #ff0055; box-shadow: 0 0 15px rgba(255,0,85,0.3); }
 
-        /* ОКНО КВЕСТА */
-        .pop-up { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; color: white; }
-        .pop-up-body { background: #161722; padding: 30px; border-radius: 18px; border: 1px solid #334; width: 85%; max-width: 380px; text-align: center; }
+        /* МОДАЛКА КВЕСТОВ */
+        .pop-up { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3,4,7,0.9); z-index: 100; align-items: center; justify-content: center; color: white; }
+        .pop-up-body { background: #0d0f18; padding: 30px; border-radius: 20px; border: 1px solid #1f253d; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.6); }
     </style>
 </head>
 <body>
 
     <div id="menu-overlay">
         <div class="menu-box">
-            <h1>AMONG US 3D</h1>
-            <input type="text" id="username-input" placeholder="ТВОЙ НИКНЕЙМ" value="Игрок">
-            <hr style="border: 0.5px solid #222; margin: 15px 0;">
-            <button class="menu-btn btn-create" id="action-create">СОЗДАТЬ ИГРУ</button>
+            <h1>NEON STATION</h1>
+            <input type="text" id="username-input" placeholder="НИКНЕЙМ" value="Игрок">
+            <div style="height: 10px;"></div>
+            <button class="menu-btn btn-create" id="action-create">Создать Корабль</button>
             <input type="number" id="code-input" placeholder="КОД ИЗ 3 ЦИФР">
-            <button class="menu-btn btn-join" id="action-join">ВОЙТИ К ДРУГУ</button>
+            <button class="menu-btn btn-join" id="action-join">Войти по коду</button>
         </div>
     </div>
 
     <div id="lobby-screen">
         <div class="lobby-box">
-            <h2 id="lobby-code-title" style="color: #f1c40f; font-size: 26px;">КОД: ---</h2>
-            <p id="lobby-status">Ожидание игроков...</p>
+            <h2 id="lobby-code-title" style="color: #00ffcc; font-size: 24px; letter-spacing: 1px;">КОД: ---</h2>
+            <p id="lobby-status">Сканирование шлюзов связи...</p>
             <div id="lobby-players-list"></div>
-            <button id="start-game-btn">НАЧАТЬ МАТЧ 🚀</button>
+            <button id="start-game-btn">Запустить Двигатели 🚀</button>
         </div>
     </div>
 
@@ -88,8 +88,8 @@
 
     <div id="crosshair"></div>
     <div id="hud">
-        <div id="room-code-display">Комната: ---</div>
-        <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Игроков на карте: <span id="player-count">1</span></div>
+        <div id="room-code-display">Орбита: ---</div>
+        <div style="font-size: 11px; color: #6c7293; margin-bottom: 10px;">Экипаж на борту: <span id="player-count">1</span></div>
         <div id="tasks-container"></div>
     </div>
 
@@ -103,136 +103,142 @@
 
     <div class="pop-up" id="task-modal">
         <div class="pop-up-body">
-            <h2 id="task-title" style="color: #f1c40f; font-size: 22px;">Выполнение задания</h2>
-            <p style="margin-top: 15px; color: #bdc3c7; font-size: 14px;">Система откалибрована и синхронизирована!</p>
-            <button style="padding: 12px; margin-top: 20px; width:100%; background:#2ecc71; color:white; font-weight:bold; border:none; border-radius:8px; cursor:pointer;" id="btn-task-done">ЗАВЕРШИТЬ</button>
+            <h2 id="task-title" style="color: #00ffcc; font-size: 20px;">Синхронизация систем...</h2>
+            <p style="margin-top: 15px; color: #6c7293; font-size: 14px;">Потоки энергии стабилизированы. Нажмите для подтверждения.</p>
+            <button style="padding: 14px; margin-top: 25px; width:100%; background:#00ffcc; color:#05050a; font-weight:bold; border:none; border-radius:12px; cursor:pointer; text-transform:uppercase;" id="btn-task-done">Выполнить</button>
         </div>
     </div>
 
     <script>
         const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x05050d);
+        scene.background = new THREE.Color(0x020205);
+        scene.fog = new THREE.FogExp2(0x020205, 0.035);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
         container.appendChild(renderer.domElement);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.7); scene.add(ambient);
-        const flashlight = new THREE.PointLight(0xffffff, 0.5, 15); scene.add(flashlight);
+        // Свет на корабле
+        const ambient = new THREE.AmbientLight(0x0a0f24, 1.2); scene.add(ambient);
+        const playerLight = new THREE.PointLight(0x00ffcc, 0.6, 12); scene.add(playerLight);
 
         const mapGroup = new THREE.Group();
         const interactibles = [];
         const wallsBB = [];
         scene.add(mapGroup);
 
-        // --- ГЕНЕРАЦИЯ КАРТЫ СТРОГО ПО ТВОЕМУ ЧЕРТЕЖУ ---
-        function createSector(x, z, w, h, color) {
-            const geo = new THREE.PlaneGeometry(w, h);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8, side: THREE.DoubleSide });
-            const mesh = new THREE.Mesh(geo, mat); mesh.rotation.x = -Math.PI / 2; mesh.position.set(x, 0, z);
+        // --- УНИКАЛЬНАЯ Sci-Fi КАРТА И НЕОНОВАЯ АРХИТЕКТУРА ---
+        
+        // Монолитный темный Sci-Fi пол (создаем один красивый модульный настил)
+        const floorGeo = new THREE.PlaneGeometry(60, 60);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a0b12, roughness: 0.4, metalness: 0.8 });
+        const floor = new THREE.Mesh(floorGeo, floorMat); floor.rotation.x = -Math.PI / 2; floor.position.y = 0;
+        mapGroup.add(floor);
+
+        // Неоновая сетка поверх пола, чтобы убрать скучный вид
+        const gridHelper = new THREE.GridHelper(60, 30, 0x00ffcc, 0x141829);
+        gridHelper.position.y = 0.01;
+        mapGroup.add(gridHelper);
+
+        // Функция постройки красивых неоновых стен
+        function buildNeonWall(x, z, w, d, neonColor = 0x00ffcc) {
+            const h = 4.5; // Высокая стена (нет ощущения "отвалившегося потолка")
+            const wallGeo = new THREE.BoxGeometry(w, h, d);
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x0e1017, roughness: 0.5, metalness: 0.7 });
+            const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+            wallMesh.position.set(x, h/2, z);
+            mapGroup.add(wallMesh);
+            wallsBB.push(new THREE.Box3().setFromObject(wallMesh));
+
+            // Неоновый светящийся карниз/молдинг поверх стены
+            const neonGeo = new THREE.BoxGeometry(w + 0.02, 0.12, d + 0.02);
+            const neonMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: neonColor, emissiveIntensity: 2.0 });
+            const neonMesh = new THREE.Mesh(neonGeo, neonMat);
+            neonMesh.position.set(x, h - 0.1, z);
+            mapGroup.add(neonMesh);
+        }
+
+        // Архитектура комнат (Центр: Кают-компания, Лево: Реактор, Право: Мостик, Верх: Медблок, Низ: Оружейная)
+        // Внешний периметр центрального зала
+        buildNeonWall(0, -11, 22, 0.5);   buildNeonWall(0, 11, 22, 0.5);
+        buildNeonWall(-11, -6, 0.5, 10);  buildNeonWall(-11, 6, 0.5, 10); // Проход влево на x=-11, z=0
+        buildNeonWall(11, -6, 0.5, 10);   buildNeonWall(11, 6, 0.5, 10);  // Проход вправо на x=11, z=0
+        
+        // Отсек: Реактор (Слева)
+        buildNeonWall(-20, -10, 18, 0.5, 0xff0055); buildNeonWall(-20, 10, 18, 0.5, 0xff0055);
+        buildNeonWall(-29, 0, 0.5, 20.5, 0xff0055);
+
+        // Отсек: Капитанский Мостик (Справа)
+        buildNeonWall(20, -10, 18, 0.5, 0x00aaff);  buildNeonWall(20, 10, 18, 0.5, 0x00aaff);
+        buildNeonWall(29, 0, 0.5, 20.5, 0x00aaff);
+
+        // Отсек: Медблок (Сверху)
+        buildNeonWall(-6, -20, 0.5, 18, 0x00ff66);  buildNeonWall(6, -20, 0.5, 18, 0x00ff66);
+        buildNeonWall(0, -29, 12.5, 0.5, 0x00ff66);
+
+        // Отсек: Оружейная (Снизу)
+        buildNeonWall(-6, 20, 0.5, 18, 0xf1c40f);   buildNeonWall(6, 20, 0.5, 18, 0xf1c40f);
+        buildNeonWall(0, 29, 12.5, 0.5, 0xf1c40f);
+
+
+        // --- ИНТЕРАКТИВНЫЕ Sci-Fi ОБЪЕКТЫ ---
+        function addInteractiveProp(x, z, geo, mat, type, neonColor=0x00ffcc) {
+            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(x, geo.parameters.height ? geo.parameters.height/2 : 0.5, z);
             mapGroup.add(mesh);
+            interactibles.push({ mesh, type, radius: 2.2 });
+            wallsBB.push(new THREE.Box3().setFromObject(mesh));
+
+            // Локальная подсветка объекта
+            const pLight = new THREE.PointLight(neonColor, 0.8, 4); pLight.position.set(x, 1.5, z);
+            scene.add(pLight);
         }
 
-        // Полы зон по чертежу
-        createSector(0, -12, 8, 6, 0xf9e79f);   // Стол с кнопкой (Кафетерий) - Желтый
-        createSector(0, -8, 8, 2, 0xa3e4d7);    // О2 - Зеленый
-        createSector(0, -3, 8, 8, 0xd7bde2);    // Управление - Фиолетовый
-        createSector(-7, -3, 6, 8, 0xa0522d);   // Шкаф с книгами (Библиотека) - Коричневый
-        createSector(-2, 5, 16, 8, 0xbdc3c7);   // Нижний зал (Диваны, Столы, Карта) - Серый
-        createSector(7, -3, 6, 24, 0xd5d8dc);   // Главный правый коридор - Серый светлый
-        createSector(13, -13, 6, 4, 0x566573);  // Энергоблок - Темно-серый
-        createSector(13, -8, 6, 6, 0x5dade2);   // Санузел (Раковина + Туалеты) - Голубой
-        createSector(13, -2, 6, 6, 0x3498db);   // Душевые - Синий
+        // 1. Центр: Главный круглый стол переговоров (Кнопка теперь смещена, ты не застрянешь!)
+        const tableGeo = new THREE.CylinderGeometry(2.5, 2.5, 0.9, 32);
+        const tableMat = new THREE.MeshStandardMaterial({ color: 0x141923, metalness: 0.9, roughness: 0.2 });
+        const centerTable = new THREE.Mesh(tableGeo, tableMat); centerTable.position.set(0, 0.45, 0);
+        mapGroup.add(centerTable); wallsBB.push(new THREE.Box3().setFromObject(centerTable));
 
-        // Создание Стен (с боксами коллизий)
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x1c1e2e, roughness: 0.5 });
-        function buildWall(x, z, w, d) {
-            const geo = new THREE.BoxGeometry(w, 3.5, d);
-            const mesh = new THREE.Mesh(geo, wallMat); mesh.position.set(x, 1.75, z);
-            mapGroup.add(mesh); wallsBB.push(new THREE.Box3().setFromObject(mesh));
-        }
+        const btnGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.4, 16);
+        const btnMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xff0000, emissiveIntensity: 1.5 });
+        addInteractiveProp(0, 0, btnGeo, btnMat, "EmergencyButton", 0xff0000);
 
-        // Внешние границы всей карты
-        buildWall(0, -15.2, 8, 0.4); buildWall(-4.2, -12, 0.4, 6); // Кафетерий верх
-        buildWall(-4.2, -8, 0.4, 2); // О2 лево
-        buildWall(-10.2, -3, 0.4, 8); buildWall(-7, -7.2, 6, 0.4); buildWall(-7, 1.2, 6, 0.4); // Библиотека
-        buildWall(-10.2, 5, 0.4, 8); buildWall(-2, 9.2, 16, 0.4); // Нижний зал
-        buildWall(4.2, 7, 0.4, 4); buildWall(7, 9.2, 6, 0.4); // Аппендикс коридора снизу
-        buildWall(10.2, 3, 0.4, 12); buildWall(10.2, -13, 0.4, 4); // Правое крыло перегородки
-        buildWall(13, -15.2, 6, 0.4); buildWall(16.2, -6.5, 0.4, 17); // Энергоблок и туалеты внешние право
+        // 2. Реактор: Огромное светящееся Ядро Энергии
+        const coreGeo = new THREE.CylinderGeometry(1.5, 1.5, 3.5, 24);
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0x030508, emissive: 0xff0055, emissiveIntensity: 2.5, transparent: true, opacity: 0.8 });
+        addInteractiveProp(-22, 0, coreGeo, coreMat, "ReactorCore", 0xff0055);
 
-        // Межкомнатные стены с ПРОХОДАМИ (ДВЕРЯМИ) строго как на схеме
-        buildWall(4.2, -12, 0.4, 4); // Дверь из Кафетерия в Коридор оставлена свободной (2 метра проход)
-        buildWall(4.2, -7.5, 0.4, 3); // Дверь из О2 в Коридор свободна
-        buildWall(-2.5, -7.2, 3, 0.4); // Стена между О2 и Управлением
-        buildWall(4.2, -3, 0.4, 5); // Стена Управления справа (дверь в коридор снизу свободна)
-        buildWall(-4.2, -3, 0.4, 5); // Дверь в библиотеку сверху свободна
-        buildWall(13, -10.8, 6, 0.4); // Стена между Энергоблоком и Раковиной
-        buildWall(13, -4.8, 6, 0.4);  // Стена между Туалетами и Душевыми
-        buildWall(13, 1.2, 6, 0.4);   // Стена Душевых снизу
+        // 3. Мостик: Бортовые Компьютеры Навигации
+        const compGeo = new THREE.BoxGeometry(1, 1.2, 4);
+        const compMat = new THREE.MeshStandardMaterial({ color: 0x101424, emissive: 0x00aaff, emissiveIntensity: 0.7 });
+        addInteractiveProp(26, 0, compGeo, compMat, "NavigationConsole", 0x00aaff);
 
-        // --- МЕБЕЛЬ И ОБЪЕКТЫ НА КАРТЕ ПО ТВОЕМУ РИСУНКУ ---
-        function buildFurniture(x, z, w, h, d, color, type = "") {
-            const geo = new THREE.BoxGeometry(w, h, d);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.6 });
-            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(x, h/2, z);
-            mapGroup.add(mesh);
-            if(type) interactibles.push({ mesh, type, radius: 2.0 });
-            else wallsBB.push(new THREE.Box3().setFromObject(mesh)); // Мебель тоже имеет коллизию!
-        }
+        // 4. Медблок: Лабораторный Био-Сканер
+        const scanGeo = new THREE.BoxGeometry(3, 0.5, 1.5);
+        const scanMat = new THREE.MeshStandardMaterial({ color: 0x1f2d3d, emissive: 0x00ff66, emissiveIntensity: 1.0 });
+        addInteractiveProp(0, -25, scanGeo, scanMat, "MedbayScanner", 0x00ff66);
 
-        // Кафетерий
-        const tableGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.8, 32);
-        const tableMat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-        const mainTable = new THREE.Mesh(tableGeo, tableMat); mainTable.position.set(0, 0.4, -12);
-        mapGroup.add(mainTable); wallsBB.push(new THREE.Box3().setFromObject(mainTable));
-        // Красная кнопка по центру стола
-        buildFurniture(0, -12, 0.4, 1.1, 0.4, 0xff0000, "Button");
-
-        // Библиотека (Шкафы с книгами вдоль стен)
-        buildFurniture(-9.5, -3, 0.8, 2.5, 6, 0x5c3a21);
-        buildFurniture(-7, -6.5, 4, 2.5, 0.8, 0x5c3a21, "Books");
-
-        // Управление (Столы и панели)
-        buildFurniture(-3.5, -3, 0.6, 0.9, 4, 0x7f8c8d);
-        buildFurniture(0, -5, 3, 1.0, 0.6, 0x34495e, "AdminPanel");
-
-        // Нижний зал
-        buildFurniture(-5, 4, 3, 0.8, 1.5, 0x8e44ad); // Обычный стол
-        buildFurniture(1, 5, 2, 0.9, 2.5, 0x27ae60, "MapTable"); // Стол с картой
-        buildFurniture(-2, 8.5, 3, 0.6, 0.8, 0xf1c40f); // Диваны желтые
-
-        // Энергоблок (Щиток с цветными проводами)
-        buildFurniture(15.5, -13, 0.5, 1.5, 1.5, 0x2c3e50, "Wires");
-
-        // Санузел и душевые (Раковина, кабинки)
-        buildFurniture(11, -8, 0.6, 1.0, 1.2, 0xffffff, "Sink");
-        buildFurniture(14, -2, 3, 1.8, 0.5, 0xbdc3c7); // Перегородки душей
-
-        // Люки вентиляции (Визуальные плоские квадраты на полу по схеме)
-        function buildVent(x, z) {
-            const geo = new THREE.PlaneGeometry(0.9, 0.9);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 1.0 });
-            const mesh = new THREE.Mesh(geo, mat); mesh.rotation.x = -Math.PI/2; mesh.position.set(x, 0.01, z);
-            mapGroup.add(mesh);
-        }
-        buildVent(0, -8); buildVent(15, -14); buildVent(15, -6); buildVent(15, -1); buildVent(-9, 8);
+        // 5. Оружейная: Тактический Пульт Наведения Защиты
+        const gunGeo = new THREE.BoxGeometry(4, 1.1, 1);
+        const gunMat = new THREE.MeshStandardMaterial({ color: 0x2c2510, emissive: 0xf1c40f, emissiveIntensity: 0.8 });
+        addInteractiveProp(0, 25, gunGeo, gunMat, "WeaponsConsole", 0xf1c40f);
 
 
-        // --- НАСТРОЙКИ ИГРОКА И УПРАВЛЕНИЯ ---
+        // --- ФИЗИКА И ПЛАВНОЕ ПЕРЕДИЖЕНИЕ С ПОДДЕРЖКОЙ СКОЛЬЖЕНИЯ ---
         const playerBB = new THREE.Box3();
-        const playerRadius = 0.35;
-        let playerPos = new THREE.Vector3(0, 1.6, -11); // Спавн у стола в Кафетерии
+        const playerRadius = 0.45;
+        // Безопасный спавн ВДАЛИ от стола (x=0, z=6) — теперь ты 100% сразу можешь ходить!
+        let playerPos = new THREE.Vector3(0, 1.6, 6); 
         let yaw = 0, pitch = 0; camera.position.copy(playerPos);
 
-        // Фиксация КЛАВИАТУРЫ ПО САНДАРТУ КЛАВИШ (РАСКЛАДКА НЕ ВЛИЯЕТ)
-        const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
+        const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
         window.addEventListener('keydown', (e) => { if(e.code in keys) keys[e.code] = true; });
         window.addEventListener('keyup', (e) => { if(e.code in keys) keys[e.code] = false; });
 
-        // Сенсорный/Мышиный Обзор (Камера)
+        // Сенсорный/Мышиный Обзор
         let isMouseDown = false; let prevMouseX = 0, prevMouseY = 0;
         window.addEventListener('mousedown', (e) => { isMouseDown = true; prevMouseX = e.clientX; prevMouseY = e.clientY; });
         window.addEventListener('mouseup', () => { isMouseDown = false; });
@@ -240,14 +246,14 @@
             if (document.pointerLockElement === container || isMouseDown) {
                 const dx = e.movementX !== undefined ? e.movementX : (e.clientX - prevMouseX);
                 const dy = e.movementY !== undefined ? e.movementY : (e.clientY - prevMouseY);
-                yaw -= dx * 0.0035; pitch -= dy * 0.0035;
-                pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
+                yaw -= dx * 0.003; pitch -= dy * 0.003;
+                pitch = Math.max(-Math.PI/2.3, Math.min(Math.PI/2.3, pitch));
                 prevMouseX = e.clientX; prevMouseY = e.clientY;
             }
         });
         container.addEventListener('click', () => { if(document.getElementById('lobby-screen').style.display === 'none') container.requestPointerLock(); });
 
-        // Тач-обзор для мобилок
+        // Мобильный Сенсорный Обзор (Правая половина экрана)
         let touchLookId = null; let lastTouchX = 0, lastTouchY = 0;
         window.addEventListener('touchstart', (e) => {
             for(let i=0; i<e.changedTouches.length; i++) {
@@ -259,8 +265,8 @@
                 let t = e.touches[i];
                 if(t.identifier === touchLookId) {
                     let dx = t.clientX - lastTouchX; let dy = t.clientY - lastTouchY;
-                    yaw -= dx * 0.005; pitch -= dy * 0.005;
-                    pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, pitch));
+                    yaw -= dx * 0.004; pitch -= dy * 0.004;
+                    pitch = Math.max(-Math.PI/2.3, Math.min(Math.PI/2.3, pitch));
                     lastTouchX = t.clientX; lastTouchY = t.clientY;
                 }
             }
@@ -280,26 +286,25 @@
             const rect = joystickZone.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2; const centerY = rect.top + rect.height / 2;
             let dx = t.clientX - centerX; let dy = t.clientY - centerY;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 45); const angle = Math.atan2(dy, dx);
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 40); const angle = Math.atan2(dy, dx);
             joystickStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-            moveVec.x = Math.cos(angle) * (dist / 45); moveVec.z = Math.sin(angle) * (dist / 45);
+            moveVec.x = Math.cos(angle) * (dist / 40); moveVec.z = Math.sin(angle) * (dist / 40);
         }
 
 
-        // --- ПУЛ И ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ ЗАДАНИЙ ---
+        // --- РАНДОМИЗАТОР ЗАДАНИЙ ---
         const taskPool = [
-            { id: 't-button', text: '🚨 Проверить Главную кнопку (Кафетерий)', type: 'Button' },
-            { id: 't-books', text: '📚 Расставить учебники (Библиотека)', type: 'Books' },
-            { id: 't-admin', text: '📊 Загрузить данные карт (Управление)', type: 'AdminPanel' },
-            { id: 't-map', text: '🗺 Сверить курс корабля (Нижний стол)', type: 'MapTable' },
-            { id: 't-wires', text: '🔌 Соединить цветные провода (Энергоблок)', type: 'Wires' },
-            { id: 't-sink', text: '🚰 Прочистить фильтр раковины (Санузел)', type: 'Sink' }
+            { id: 't-btn', text: '🚨 Проверить Кнопку Сбора (Центр)', type: 'EmergencyButton' },
+            { id: 't-core', text: '🔮 Калибровать Жидкость Ядра (Реактор)', type: 'ReactorCore' },
+            { id: 't-nav', text: '🗺 Проложить Курс Полета (Мостик)', type: 'NavigationConsole' },
+            { id: 't-scan', text: '🧬 Пройти Полное Био-Сканирование (Медблок)', type: 'MedbayScanner' },
+            { id: 't-gun', text: '⚔ Перезагрузить Энерго-Щиты (Оружейная)', type: 'WeaponsConsole' }
         ];
         let myTasks = [];
 
         function generateUniqueTasks() {
             let shuffled = [...taskPool].sort(() => 0.5 - Math.random());
-            myTasks = shuffled.slice(0, 3); // Выдаем 3 абсолютно случайных квеста каждому игроку индивидуально
+            myTasks = shuffled.slice(0, 3); // Ровно 3 случайных квеста каждому игроку
             const container = document.getElementById('tasks-container');
             container.innerHTML = myTasks.map(t => `<div class="task" id="${t.id}">❌ ${t.text}</div>`).join('');
         }
@@ -316,8 +321,8 @@
         };
 
         document.getElementById('action-join').onclick = () => {
-            myUsername = document.getElementById('username-input').value || "Друг"; const code = document.getElementById('code-input').value;
-            if(code.length !== 3) return alert("Введите 3 цифры кода!");
+            myUsername = document.getElementById('username-input').value || "Игрок"; const code = document.getElementById('code-input').value;
+            if(code.length !== 3) return alert("Введите код из 3 цифр!");
             isHost = false; roomCode = code; initNetwork();
         };
 
@@ -327,7 +332,7 @@
                 myId = id;
                 document.getElementById('menu-overlay').style.display = 'none';
                 document.getElementById('lobby-screen').style.display = 'flex';
-                document.getElementById('lobby-code-title').innerText = `КОД КОМНАТЫ: ${roomCode}`;
+                document.getElementById('lobby-code-title').innerText = `КОД КОРАБЛЯ: ${roomCode}`;
                 
                 lobbyNames.push(myUsername); rebuildLobbyList();
 
@@ -343,7 +348,7 @@
                         setupRole(myId === impostorId ? 'Impostor' : 'Crewmate');
                     };
                 } else {
-                    document.getElementById('lobby-status').innerText = "Ожидаем старта создателем комнаты...";
+                    document.getElementById('lobby-status').innerText = "Ожидание команды на взлет от капитана...";
                     let conn = peer.connect(`among-blueprint-${roomCode}`); bindEvents(conn);
                 }
                 animateLoop();
@@ -357,12 +362,12 @@
             conn.on('data', (data) => {
                 if(data.type === 'lobby-join') {
                     lobbyNames.push(data.name); rebuildLobbyList();
-                    createRemotePlayer(conn.peer, data.name, 0, -11);
+                    createRemotePlayer(conn.peer, data.name, 0, 6);
                     if(isHost) connections.forEach(c => c.send({ type: 'lobby-sync-names', names: lobbyNames }));
                 }
                 if(data.type === 'lobby-sync-names') {
                     lobbyNames = data.names; rebuildLobbyList();
-                    lobbyNames.forEach(n => { if(n !== myUsername) createRemotePlayer(conn.peer, n, 0, -11); });
+                    lobbyNames.forEach(n => { if(n !== myUsername) createRemotePlayer(conn.peer, n, 0, 6); });
                 }
                 if(data.type === 'game-start') { startGameSession(); }
                 if(data.type === 'sync') {
@@ -372,7 +377,7 @@
                     }
                 }
                 if(data.type === 'role') setupRole(data.role);
-                if(data.type === 'kill' && data.target === myId) { myRole = "Ghost"; alert("Тебя устранил предатель! Ты стал призраком."); }
+                if(data.type === 'kill' && data.target === myId) { myRole = "Ghost"; alert("Тебя устранил предатель! Ты перешел в режим призрака."); }
             });
         }
 
@@ -380,84 +385,87 @@
 
         function startGameSession() {
             document.getElementById('lobby-screen').style.display = 'none';
-            document.getElementById('room-code-display').innerText = `Комната: ${roomCode}`;
+            document.getElementById('room-code-display').innerText = `Орбита: #${roomCode}`;
             generateUniqueTasks();
         }
 
         function setupRole(role) {
             myRole = role; const scr = document.getElementById('role-screen'); const txt = document.getElementById('role-text');
             scr.style.display = 'flex';
-            if(myRole === 'Impostor') { txt.innerText = "ПРЕДАТЕЛЬ"; txt.style.color = "#ff3333"; document.getElementById('btn-kill').style.display = 'flex'; }
-            else { txt.innerText = "ЧЛЕН ЭКИПАЖА"; txt.style.color = "#2ecc71"; }
-            setTimeout(() => { scr.style.display = 'none'; }, 2000);
+            if(myRole === 'Impostor') { txt.innerText = "ПРЕДАТЕЛЬ"; txt.style.color = "#ff0055"; document.getElementById('btn-kill').style.display = 'flex'; }
+            else { txt.innerText = "ЭКИПАЖ"; txt.style.color = "#00ffcc"; }
+            setTimeout(() => { scr.style.display = 'none'; }, 2500);
         }
 
         function createRemotePlayer(id, name, x, z) {
             if(networkPlayers[id]) return;
-            const g = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 16);
-            const m = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.5 });
-            const mesh = new THREE.Mesh(g, m); mesh.position.set(x, 0.6, z);
+            const g = new THREE.CylinderGeometry(0.4, 0.4, 1.3, 16);
+            const m = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.3, metalness: 0.5 });
+            const mesh = new THREE.Mesh(g, m); mesh.position.set(x, 0.65, z);
             
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-            canvas.width = 256; canvas.height = 64; ctx.fillStyle = '#ffffff'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center';
+            canvas.width = 256; canvas.height = 64; ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center';
             ctx.fillText(name, 128, 40);
             const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
-            spr.position.y = 1.2; spr.scale.set(1.8, 0.45, 1); mesh.add(spr);
+            spr.position.y = 1.3; spr.scale.set(1.8, 0.45, 1); mesh.add(spr);
 
             scene.add(mesh); networkPlayers[id] = { mesh, name };
             document.getElementById('player-count').innerText = (Object.keys(networkPlayers).length + 1);
         }
 
-        // ---ИГРОВОЙ ДВИЖОК С АДЕКВАТНОЙ СКОРОСТЬЮ И СКОЛЬЖЕНИЕМ---
+        // --- ГЛАВНЫЙ ИГРОВОЙ ЦИКЛ (ИДЕАЛЬНОЕ СКОЛЬЖЕНИЕ И СКОРОСТЬ) ---
         let lastSentX = 0, lastSentZ = 0;
         function animateLoop() {
             requestAnimationFrame(animateLoop);
             if(document.getElementById('lobby-screen').style.display !== 'none') { renderer.render(scene, camera); return; }
 
+            // Сбор векторов клавиатуры, если джойстик молчит
             if(joystickTouchId === null) {
                 moveVec = { x: 0, z: 0 };
-                if(keys.KeyW) moveVec.z = 1; if(keys.KeyS) moveVec.z = -1;
-                if(keys.KeyA) moveVec.x = -1; if(keys.KeyD) moveVec.x = 1;
+                if(keys.KeyW || keys.ArrowUp) moveVec.z = 1; 
+                if(keys.KeyS || keys.ArrowDown) moveVec.z = -1;
+                if(keys.KeyA || keys.ArrowLeft) moveVec.x = -1; 
+                if(keys.KeyD || keys.ArrowRight) moveVec.x = 1;
             }
 
             let forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
             let side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
             
             let oldPos = playerPos.clone();
-            const normalSpeed = 0.052; // Комфортная скорость ходьбы (без безумных улетов)
+            const normalSpeed = 0.055; // Плавная, стабильная скорость Sci-Fi космонавта
 
-            // Движение и плавное скольжение вдоль стен по X
+            // Движение по оси X со скольжением
             playerPos.x += forward.x * moveVec.z * normalSpeed + side.x * moveVec.x * normalSpeed;
             playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius * 2, 2, playerRadius * 2));
             for (let i = 0; i < wallsBB.length; i++) { if (playerBB.intersectsBox(wallsBB[i])) { playerPos.x = oldPos.x; break; } }
 
-            // Движение и плавное скольжение вдоль стен по Z
+            // Движение по оси Z со скольжением
             playerPos.z += forward.z * moveVec.z * normalSpeed + side.z * moveVec.x * normalSpeed;
             playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius * 2, 2, playerRadius * 2));
             for (let i = 0; i < wallsBB.length; i++) { if (playerBB.intersectsBox(wallsBB[i])) { playerPos.z = oldPos.z; break; } }
 
+            // Синхронизация камеры и фары игрока
             camera.position.copy(playerPos);
             camera.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); camera.rotateX(pitch);
-            flashlight.position.copy(playerPos);
+            playerLight.position.copy(playerPos);
 
+            // Пакетная синхронизация позиций по сети
             if(Math.abs(playerPos.x - lastSentX) > 0.01 || Math.abs(playerPos.z - lastSentZ) > 0.01) {
                 connections.forEach(c => { c.send({ type: 'sync', x: playerPos.x, z: playerPos.z, yaw: yaw }); });
                 lastSentX = playerPos.x; lastSentZ = playerPos.z;
             }
 
-            // Обработка взаимодействия с заданиями
+            // Обработка USE (Задания)
             let activeInteractible = null;
             interactibles.forEach(p => {
                 if(camera.position.distanceTo(p.mesh.position) < p.radius) {
-                    // Проверяем, есть ли этот тип объекта в списке личных заданий игрока
                     let matchTask = myTasks.find(t => t.type === p.type);
                     if(matchTask) activeInteractible = matchTask;
                 }
             });
 
             if(activeInteractible) {
-                const useBtn = document.getElementById('btn-use');
-                useBtn.disabled = false;
+                const useBtn = document.getElementById('btn-use'); useBtn.disabled = false;
                 useBtn.onclick = () => {
                     document.getElementById('task-modal').style.display = 'flex';
                     document.getElementById('btn-task-done').onclick = () => {
@@ -467,15 +475,15 @@
                 };
             } else { document.getElementById('btn-use').disabled = true; }
 
-            // Логика кнопки KILL для предателя
+            // Обработка KILL (Предатель)
             if(myRole === "Impostor") {
                 let victimId = null;
-                Object.keys(networkPlayers).forEach(id => { if(camera.position.distanceTo(networkPlayers[id].mesh.position) < 2.0) victimId = id; });
+                Object.keys(networkPlayers).forEach(id => { if(camera.position.distanceTo(networkPlayers[id].mesh.position) < 2.3) victimId = id; });
                 if(victimId) {
                     document.getElementById('btn-kill').style.opacity = "1";
                     document.getElementById('btn-kill').onclick = () => {
                         connections.forEach(c => { if(c.peer === victimId) c.send({ type: 'kill', target: victimId }); });
-                        networkPlayers[victimId].mesh.rotation.z = Math.PI / 2; // Кладём цилиндр игрока на бок
+                        networkPlayers[victimId].mesh.rotation.z = Math.PI / 2;
                     };
                 } else { document.getElementById('btn-kill').style.opacity = "0.3"; document.getElementById('btn-kill').onclick = null; }
             }
