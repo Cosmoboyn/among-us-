@@ -3,93 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Among Us 3D: Real Interactive Tasks</title>
+    <title>Among Us 3D: Гранд Обнова + Рулетка Ролей</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #0b0c10; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #050508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* МЕНЮ И ЛОББИ */
+        /* МЕНЮ, РУЛЕТКА СКИНОВ И НАСТРОЙКИ */
         #menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1c23 0%, #0a0b0e 100%);
+            background: radial-gradient(circle at center, #141a29 0%, #05070c 100%);
             z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
+            overflow-y: auto; padding: 20px;
         }
-        .menu-box { background: rgba(28, 30, 38, 0.95); padding: 40px; border-radius: 16px; border: 2px solid #393e46; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { font-size: 32px; color: #00adb5; margin-bottom: 25px; letter-spacing: 2px; font-weight: 900; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 8px; border: 2px solid #393e46; background: #222831; color: white; font-size: 16px; text-align: center; outline: none; }
-        input:focus { border-color: #00adb5; }
-        .menu-btn { width: 100%; padding: 14px; margin-top: 10px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
-        .btn-create { background: #00adb5; color: #eeeeee; box-shadow: 0 4px 14px rgba(0,173,181,0.4); }
-        .btn-join { background: #393e46; color: #eeeeee; }
+        .menu-box { background: rgba(15, 22, 36, 0.95); padding: 30px; border-radius: 16px; border: 2px solid #1f4068; text-align: center; width: 100%; max-width: 440px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+        h1 { font-size: 28px; color: #00e5ff; margin-bottom: 5px; letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+        .subtitle { font-size: 12px; color: #ff2e63; font-weight: bold; margin-bottom: 20px; letter-spacing: 3px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 2px solid #1f4068; background: #0b0c10; color: white; font-size: 16px; text-align: center; outline: none; }
+        input:focus { border-color: #00e5ff; }
+        
+        /* БЛОК РУЛЕТКИ С КАНВАСОМ (СКИНЫ) */
+        .roulette-container { margin: 15px 0; background: #0b0c10; border: 1px solid #1f4068; padding: 15px; border-radius: 8px; position: relative; }
+        #roulette-canvas { background: #111; border-radius: 50%; border: 3px solid #00e5ff; }
+        .roulette-pointer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #ff2e63; z-index: 10; }
+        .skin-preview-text { font-size: 14px; margin-top: 8px; color: #aaa; }
+        #current-skin-badge { display: inline-block; width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-left: 8px; border: 1px solid #fff; }
+
+        .menu-btn { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: none; font-size: 15px; font-weight: bold; color: white; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+        .btn-create { background: #00b4d8; box-shadow: 0 4px 14px rgba(0,180,216,0.4); }
+        .btn-join { background: #1f4068; }
+        .btn-spin { background: #ffb703; color: #000; }
         .menu-btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
+        /* ЛОББИ */
         #lobby-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #1a1c23; z-index: 180; flex-direction: column; align-items: center; justify-content: center; color: white;
+            background: #05070c; z-index: 180; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .lobby-box { background: #222831; border: 2px solid #393e46; border-radius: 16px; padding: 35px; width: 85%; max-width: 420px; text-align: center; }
-        #lobby-players-list { text-align: left; background: #0f1115; padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto; font-size: 16px; margin: 20px 0; border: 1px solid #393e46; color: #00adb5; }
-        #start-game-btn { width: 100%; padding: 16px; background: #ff2e63; color: white; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: none; text-transform: uppercase; }
+        .lobby-box { background: #0f1624; border: 2px solid #1f4068; border-radius: 16px; padding: 35px; width: 85%; max-width: 420px; text-align: center; }
+        #lobby-players-list { text-align: left; background: #05070c; padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto; font-size: 16px; margin: 20px 0; border: 1px solid #1f4068; color: #00e5ff; line-height: 1.6; }
+        #start-game-btn { width: 100%; padding: 16px; background: #ff2e63; color: white; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: none; text-transform: uppercase; box-shadow: 0 4px 15px rgba(255,46,99,0.4); }
 
-        #role-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 150; align-items: center; justify-content: center; flex-direction: column; }
-        #role-text { font-size: 48px; font-weight: 900; letter-spacing: 6px; }
+        /* ЭКРАН РУЛЕТКИ РОЛЕЙ (ПРЕДАТЕЛЬ / ЭКИПАЖ) */
+        #role-screen { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 150; align-items: center; justify-content: center; flex-direction: column; 
+        }
+        #role-roulette-box { position: relative; margin-bottom: 25px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        #role-roulette-canvas { background: #050508; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+        .role-pointer { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ffffff; margin-bottom: 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        #role-title { font-size: 20px; color: #aaa; letter-spacing: 3px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; }
+        #role-text { font-size: 44px; font-weight: 900; letter-spacing: 6px; text-align: center; min-height: 55px; }
+        #role-sub { font-size: 16px; color: #888; margin-top: 15px; text-align: center; max-width: 80%; }
 
-        /* HUD ИНТЕРФЕЙС */
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(34,40,49,0.9); padding: 20px; border-radius: 12px; border: 1px solid #393e46; color: #fff; pointer-events: none; font-family: monospace; min-width: 280px; }
-        #room-code-display { color: #00adb5; font-weight: bold; font-size: 16px; margin-bottom: 5px; }
-        #tasks-container { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
-        .task { color: #ff2e63; font-size: 13px; font-weight: bold; }
-        .task.done { color: #00adb5; text-decoration: line-through; opacity: 0.6; }
-        #interaction-prompt { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #00adb5; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 18px; border: 1px solid #00adb5; display: none; z-index: 10; }
-        #sabotage-alert { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff2e63; color: white; padding: 15px 30px; border-radius: 8px; font-size: 20px; font-weight: bold; z-index: 99; display: none; animation: blink 1s infinite; text-align: center; }
+        /* ИНТЕРФЕЙС И ХУД */
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(11,12,16,0.9); padding: 15px 20px; border-radius: 12px; border: 1px solid #1f4068; color: #fff; pointer-events: none; min-width: 250px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        #timer-display { font-size: 24px; color: #ff2e63; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 5px; background: rgba(255,46,99,0.1); padding: 5px; border-radius: 6px; }
+        #room-code-display { color: #00e5ff; font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 10px; }
+        #mechanics-info { border-top: 1px solid #1f4068; padding-top: 8px; font-size: 13px; color: #eee; }
 
-        #impostor-panel { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(255,46,99,0.15); border: 2px solid #ff2e63; padding: 15px; border-radius: 12px; display: none; flex-direction: column; gap: 10px; }
-        .sab-btn { padding: 10px 15px; background: #ff2e63; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        #interaction-prompt { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #00e5ff; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; border: 1px solid #00e5ff; display: none; z-index: 10; text-transform: uppercase; box-shadow: 0 0 15px rgba(0,229,255,0.4); }
 
-        /* ИНТЕРФЕЙС ИНТЕРАКТИВНЫХ МИНИ-ИГР (ИНТЕРФЕЙС ЗАДАНИЙ) */
-        #task-window {
+        #impostor-map {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 460px; height: 380px; background: #1a1c23; border: 4px solid #00adb5;
-            border-radius: 16px; z-index: 300; color: white; padding: 25px; flex-direction: column;
-            align-items: center; justify-content: space-between; box-shadow: 0 0 40px rgba(0, 173, 181, 0.6);
+            width: 450px; height: 450px; background: rgba(5, 10, 20, 0.9); border: 3px solid #ff2e63;
+            border-radius: 50%; z-index: 400; box-shadow: 0 0 50px rgba(255,46,99,0.6);
         }
-        #task-title { font-size: 18px; color: #00adb5; font-weight: bold; text-align: center; border-bottom: 2px solid #393e46; width: 100%; padding-bottom: 10px; text-transform: uppercase; }
-        #task-content { width: 100%; flex-grow: 1; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
-        .close-task-btn { padding: 8px 20px; background: #393e46; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
-        .close-task-btn:hover { background: #ff2e63; }
-
-        /* Мини-игра: Провода */
-        .wires-container { display: flex; justify-content: space-between; width: 100%; height: 100%; padding: 10px 30px; }
-        .wire-column { display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-        .wire-node { width: 45px; height: 35px; border-radius: 6px; border: 2px solid #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: transparent; }
-        .wire-node.active { box-shadow: 0 0 15px #fff; transform: scale(1.1); }
-        .wire-node.connected { opacity: 0.3; cursor: not-allowed; border-color: #00adb5 !important; }
-
-        /* Мини-игра: Скачивание */
-        .download-box { width: 100%; text-align: center; }
-        .progress-bar { width: 100%; background: #222831; border: 2px solid #393e46; height: 35px; border-radius: 8px; overflow: hidden; margin: 20px 0; position: relative; }
-        .progress-fill { width: 0%; height: 100%; background: #00adb5; transition: width 0.1s linear; }
-        .dl-btn { padding: 14px 30px; background: #00adb5; color: white; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
-
-        /* Мини-игра: Калибровка */
-        .calibrate-box { width: 100%; text-align: center; position: relative; }
-        .track { width: 100%; height: 25px; background: #222831; border-radius: 6px; position: relative; border: 2px solid #393e46; }
-        .target-zone { position: absolute; left: 42%; width: 16%; height: 100%; background: #00adb5; opacity: 0.5; box-shadow: 0 0 10px #00adb5; }
-        .slider-pointer { position: absolute; left: 0%; width: 15px; height: 100%; background: #ff2e63; border-radius: 4px; box-shadow: 0 0 8px #ff2e63; }
-        .cal-btn { margin-top: 25px; padding: 14px 30px; background: #ff2e63; color: white; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; width: 100%; }
 
         /* МОБИЛЬНОЕ УПРАВЛЕНИЕ */
-        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border: 2px solid #393e46; border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
-        #joystick-stick { width: 50px; height: 50px; background: #00adb5; border-radius: 50%; position: absolute; pointer-events: none; }
+        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border: 2px solid #1f4068; border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
+        #joystick-stick { width: 50px; height: 50px; background: #00e5ff; border-radius: 50%; position: absolute; pointer-events: none; }
         .action-group { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
-        .action-btn { width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 16px; border: 2px solid #393e46; background: #222831; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        #btn-use-mob { border-color: #00adb5; color: #00adb5; }
-        #btn-kill-mob { display: none; background: #ff2e63; border-color: #ff2e63; }
-
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .action-btn { width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 14px; border: 2px solid #1f4068; background: #0f1624; cursor: pointer; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
+        #btn-use-mob { border-color: #00e5ff; color: #00e5ff; }
+        #btn-kill-mob { display: none; background: #ff2e63; border-color: #ff2e63; box-shadow: 0 0 15px #ff2e63; }
+        #btn-map-mob { display: none; background: #111; border-color: #ff2e63; color: #ff2e63; }
     </style>
 </head>
 <body>
@@ -97,7 +87,19 @@
     <div id="menu-overlay">
         <div class="menu-box">
             <h1>AMONG US 3D</h1>
-            <input type="text" id="username-input" placeholder="ВАШ НИКНЕЙМ" value="Космонавт">
+            <div class="subtitle">ГРАНД ОБНОВА: ПРЯТКИ</div>
+            
+            <input type="text" id="username-input" placeholder="ВАШ НИКНЕЙМ">
+            
+            <div class="roulette-container">
+                <div class="roulette-pointer"></div>
+                <canvas id="roulette-canvas" width="120" height="120"></canvas>
+                <div class="skin-preview-text">
+                    Ваш скин: <span id="current-skin-badge"></span>
+                </div>
+                <button class="menu-btn btn-spin" id="spin-btn">Крутить рулетку 🎲</button>
+            </div>
+
             <button class="menu-btn btn-create" id="action-create">Создать лобби</button>
             <input type="number" id="code-input" placeholder="КОД ИЗ 3 ЦИФР">
             <button class="menu-btn btn-join" id="action-join">Войти по коду</button>
@@ -108,50 +110,106 @@
         <div class="lobby-box">
             <h2 id="lobby-code-title">КОД КОРАБЛЯ: ---</h2>
             <div id="lobby-players-list"></div>
-            <button id="start-game-btn">Начать Игру 🚀</button>
+            <button id="start-game-btn">Запустить Прятки 🔪</button>
         </div>
     </div>
 
-    <div id="role-screen"><h1 id="role-text"></h1></div>
-    <div id="sabotage-alert">ВНИМАНИЕ! САБОТАЖ РЕАКТОРА!<br><span id="sab-timer">30</span> сек осталось!</div>
-    <div id="interaction-prompt">Нажмите [ E ] для взаимодействия</div>
-
-    <div id="task-window">
-        <div id="task-title">Интерфейс Системы</div>
-        <div id="task-content"></div>
-        <button class="close-task-btn" onclick="closeActiveTask()">ЗАКРЫТЬ</button>
+    <div id="role-screen">
+        <div id="role-roulette-box">
+            <div id="role-title">Определение роли</div>
+            <div class="role-pointer"></div>
+            <canvas id="role-roulette-canvas" width="200" height="200"></canvas>
+        </div>
+        <h1 id="role-text"></h1>
+        <div id="role-sub"></div>
     </div>
+    
+    <div id="interaction-prompt">Нажмите [ E ]</div>
 
-    <div id="impostor-panel">
-        <div style="color:#ff2e63; font-weight:bold; font-size:12px; text-align:center; margin-bottom:5px;">МЕНЮ САБОТАЖА</div>
-        <button class="sab-btn" id="sab-lights-btn">Вырубить Свет</button>
-        <button class="sab-btn" id="sab-reactor-btn">Критический Реактор</button>
-    </div>
+    <canvas id="impostor-map" width="450" height="450"></canvas>
 
     <div id="hud">
+        <div id="timer-display">ОСТАЛОСЬ: 02:00</div>
         <div id="room-code-display">Комната: ---</div>
-        <div style="font-size: 12px; color: #eeeeee; margin-bottom: 8px;">Игроков на борту: <span id="player-count">1</span></div>
-        <div style="font-size: 13px; color: #00adb5; font-weight: bold; border-bottom: 1px solid #393e46; padding-bottom: 4px;">СПИСОК ЗАДАНИЙ (Кнопка E):</div>
-        <div id="tasks-container"></div>
+        <div id="mechanics-info">Загрузка систем...</div>
     </div>
 
     <div id="game-container"></div>
 
     <div id="joystick-zone"><div id="joystick-stick"></div></div>
     <div class="action-group">
-        <button class="action-btn" id="btn-use-mob">USE (E)</button>
-        <button class="action-btn" id="btn-kill-mob">KILL (Q)</button>
+        <button class="action-btn" id="btn-map-mob">КАРТА (M)</button>
+        <button class="action-btn" id="btn-use-mob">ДЕЙСТВИЕ (E)</button>
+        <button class="action-btn" id="btn-kill-mob">УБИТЬ (Q)</button>
     </div>
 
     <script>
+        // --- ЛОГИКА СОХРАНЕНИЙ И РУЛЕТКИ СКИНОВ ---
+        const skinColors = ['#ff2e63', '#00e5ff', '#00b4d8', '#ffb703', '#9d4edd', '#38b000', '#ff70a6', '#f77f00', '#ffffff', '#70e000'];
+        let mySelectedColor = localStorage.getItem('among_saved_color') || '#ff2e63';
+        let myUsername = localStorage.getItem('among_saved_name') || ("Выживший_" + Math.floor(Math.random()*900));
+
+        document.getElementById('username-input').value = myUsername;
+        document.getElementById('current-skin-badge').style.backgroundColor = mySelectedColor;
+
+        const rCanvas = document.getElementById('roulette-canvas');
+        const rCtx = rCanvas.getContext('2d');
+        let rouletteAngle = 0;
+
+        function drawRoulette() {
+            const numSegments = skinColors.length;
+            const arc = (Math.PI * 2) / numSegments;
+            for (let i = 0; i < numSegments; i++) {
+                rCtx.fillStyle = skinColors[i];
+                rCtx.beginPath(); rCtx.moveTo(60, 60);
+                rCtx.arc(60, 60, 55, rouletteAngle + i * arc, rouletteAngle + (i + 1) * arc);
+                rCtx.fill();
+            }
+            rCtx.fillStyle = '#0b0c10'; rCtx.beginPath(); rCtx.arc(60, 60, 15, 0, Math.PI*2); rCtx.fill();
+        }
+        drawRoulette();
+
+        let isSpinning = false;
+        document.getElementById('spin-btn').onclick = () => {
+            if (isSpinning) return;
+            isSpinning = true;
+            let speed = 0.4 + Math.random() * 0.3;
+            let friction = 0.98;
+
+            function animateSpin() {
+                rouletteAngle += speed; speed *= friction; drawRoulette();
+                if (speed > 0.002) { requestAnimationFrame(animateSpin); } 
+                else {
+                    isSpinning = false;
+                    const arc = (Math.PI * 2) / skinColors.length;
+                    let normalizedAngle = (3 * Math.PI / 2 - rouletteAngle) % (Math.PI * 2);
+                    if (normalizedAngle < 0) normalizedAngle += Math.PI * 2;
+                    let winningIndex = Math.floor(normalizedAngle / arc) % skinColors.length;
+                    
+                    mySelectedColor = skinColors[winningIndex];
+                    localStorage.setItem('among_saved_color', mySelectedColor);
+                    document.getElementById('current-skin-badge').style.backgroundColor = mySelectedColor;
+                }
+            }
+            animateSpin();
+        };
+
+        document.getElementById('username-input').oninput = (e) => {
+            myUsername = e.target.value || "Игрок";
+            localStorage.setItem('among_saved_name', myUsername);
+        };
+
+
+        // --- ИНИЦИАЛИЗАЦИЯ ТРЕХМЕРНОГО МИРА КАРТЫ ---
         const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050508);
+        scene.background = new THREE.Color(0x0a0f1d);
         
-        const ambientLight = new THREE.AmbientLight(0x404050, 1.5); scene.add(ambientLight);
-        const playerLight = new THREE.PointLight(0xffffff, 0.8, 15); scene.add(playerLight);
+        const ambientLight = new THREE.AmbientLight(0xdff0ff, 0.6); scene.add(ambientLight);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8); sunLight.position.set(100, 300, 100); scene.add(sunLight);
+        const playerLight = new THREE.PointLight(0xffffff, 0.6, 25); scene.add(playerLight);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
@@ -161,146 +219,122 @@
         const interactibles = [];
         scene.add(mapGroup);
 
-        // --- ГЕНЕРАЦИЯ БОЛЬШОЙ СТРОГОЙ КАРТЫ ---
-        const floorGeo = new THREE.PlaneGeometry(160, 160);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x222831, roughness: 0.6, metalness: 0.5 });
+        const mapSize = 2000;
+        const floorGeo = new THREE.PlaneGeometry(mapSize, mapSize);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x3b5323, roughness: 0.9, metalness: 0.1 });
         const floor = new THREE.Mesh(floorGeo, floorMat); floor.rotation.x = -Math.PI / 2;
         mapGroup.add(floor);
 
-        const grid = new THREE.GridHelper(160, 40, 0x393e46, 0x2d3238); grid.position.y = 0.01;
-        mapGroup.add(grid);
+        const domeGeo = new THREE.SphereGeometry(mapSize / 1.3, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+        const domeMat = new THREE.MeshBasicMaterial({ color: 0x00a8ff, wireframe: true, transparent: true, opacity: 0.03 });
+        const dome = new THREE.Mesh(domeGeo, domeMat); scene.add(dome);
 
-        function createWall(x, z, w, d, color = 0x393e46) {
-            const h = 5;
+        function createWall(x, z, w, d, h = 6, color = 0x5c6b73) {
             const geo = new THREE.BoxGeometry(w, h, d);
-            const mat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.6, roughness: 0.4 });
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 });
             const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, h/2, z);
-            mapGroup.add(mesh);
+            mesh.position.set(x, h/2, z); mapGroup.add(mesh);
             wallsBB.push(new THREE.Box3().setFromObject(mesh));
+            return mesh;
         }
 
-        // Периметр
-        createWall(0, -75, 150, 2); createWall(0, 75, 150, 2); createWall(-75, 0, 2, 150); createWall(75, 0, 2, 150);
-        // Комнаты
-        createWall(0, -15, 40, 2); createWall(-20, 0, 2, 30); createWall(20, 0, 2, 30);
-        createWall(-60, 0, 2, 40); createWall(-50, -20, 20, 2); createWall(-50, 20, 20, 2);
-        createWall(-40, 45, 30, 2); createWall(-25, 60, 2, 30);
-        createWall(60, 0, 2, 30); createWall(50, -15, 20, 2); createWall(50, 15, 20, 2);
-        createWall(-40, -45, 25, 2); createWall(-25, -55, 2, 20);
-        createWall(0, 45, 35, 2);
+        const halfM = mapSize / 2;
+        createWall(0, -halfM, mapSize, 10, 20, 0x111625);
+        createWall(0, halfM, mapSize, 10, 20, 0x111625);
+        createWall(-halfM, 0, 10, mapSize, 20, 0x111625);
+        createWall(halfM, 0, 10, mapSize, 20, 0x111625);
 
-        // --- БАЗА ИЗ 20 ЗАДАНИЙ С РАЗНЫМИ ТИПАМИ МИНИ-ИГР ---
-        const taskListPool = [
-            { name: "Соединение силовой проводки", room: "Electrical", x: -35, z: 50, gameType: 'wires' },
-            { name: "Очистка фильтров воздуха", room: "Electrical", x: -30, z: 55, gameType: 'download' },
-            { name: "Резервное копирование щитка", room: "Electrical", x: -28, z: 48, gameType: 'calibrate' },
-            { name: "Сканирование мед-отсека", room: "Medbay", x: -35, z: -50, gameType: 'download' },
-            { name: "Синхронизация дефибриллятора", room: "Medbay", x: -30, z: -52, gameType: 'calibrate' },
-            { name: "Слив жидких отходов", room: "Medbay", x: -38, z: -57, gameType: 'wires' },
-            { name: "Запуск циклов ядра реактора", room: "Reactor", x: -55, z: 5, gameType: 'calibrate' },
-            { name: "Загрузка прошивки антиматерии", room: "Reactor", x: -55, z: -5, gameType: 'download' },
-            { name: "Перезапуск генераторов поля", room: "Reactor", x: -58, z: 12, gameType: 'wires' },
-            { name: "Синхронизация гироскопа", room: "Navigation", x: 55, z: 2, gameType: 'calibrate' },
-            { name: "Обновление карт созвездий", room: "Navigation", x: 58, z: -5, gameType: 'download' },
-            { name: "Настройка варп-маршрута", room: "Navigation", x: 52, z: 8, gameType: 'wires' },
-            { name: "Проверка изоляции кабелей", room: "Storage", x: -5, z: 55, gameType: 'wires' },
-            { name: "Выравнивание давления баков", room: "Storage", x: 5, z: 60, gameType: 'calibrate' },
-            { name: "Архивация грузовой ведомости", room: "Storage", x: 12, z: 50, gameType: 'download' },
-            { name: "Перезагрузка связи столовой", room: "Cafeteria", x: 0, z: -12, gameType: 'download' },
-            { name: "Тестирование датчиков дыма", room: "Cafeteria", x: -15, z: -5, gameType: 'wires' },
-            { name: "Сборка логов термостата", room: "Cafeteria", x: 15, z: -8, gameType: 'calibrate' },
-            { name: "Зарядка лазерных батарей", room: "Weapons", x: 35, z: -40, gameType: 'download' },
-            { name: "Калибровка наведения турелей", room: "Weapons", x: 45, z: -45, gameType: 'calibrate' }
-        ];
+        const riverWidth = 60;
+        const riverGeo = new THREE.PlaneGeometry(mapSize, riverWidth);
+        const riverMat = new THREE.MeshStandardMaterial({ color: 0x0077b6, roughness: 0.2, metalness: 0.8 });
+        const river = new THREE.Mesh(riverGeo, riverMat); river.rotation.x = -Math.PI / 2; river.position.set(0, 0.05, 0);
+        mapGroup.add(river);
 
-        const taskGeo = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 16);
-        const taskMat = new THREE.MeshStandardMaterial({ color: 0x111, emissive: 0xffaa00, emissiveIntensity: 1.2 });
+        createWall(-halfM / 2 - 10, 0, halfM - 20, riverWidth, 8, 0x005f73);
+        createWall(halfM / 2 + 10, 0, halfM - 20, riverWidth, 8, 0x005f73);
 
-        taskListPool.forEach((t, index) => {
-            const mesh = new THREE.Mesh(taskGeo, taskMat); mesh.position.set(t.x, 0.6, t.z);
-            mapGroup.add(mesh); wallsBB.push(new THREE.Box3().setFromObject(mesh));
-            
-            interactibles.push({
-                id: `task-${index}`, mesh: mesh, type: 'task',
-                taskName: t.name, room: t.room, gameType: t.gameType, radius: 3.0
-            });
+        const bridgeGeo = new THREE.BoxGeometry(40, 2, riverWidth + 4);
+        const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x6d597a, roughness: 0.9 });
+        const bridge = new THREE.Mesh(bridgeGeo, bridgeMat); bridge.position.set(0, 1, 0);
+        mapGroup.add(bridge);
+
+        function generateHouse(hx, hz, isTwoStory) {
+            const size = 30;
+            createWall(hx - size/2, hz, 1, size, isTwoStory ? 12 : 6);
+            createWall(hx + size/2, hz, 1, size, isTwoStory ? 12 : 6);
+            createWall(hx, hz - size/2, size, 1, isTwoStory ? 12 : 6);
+            createWall(hx - size/3, hz + size/2, size/3, 1, isTwoStory ? 12 : 6);
+            createWall(hx + size/3, hz + size/2, size/3, 1, isTwoStory ? 12 : 6);
+
+            const roofGeo = new THREE.BoxGeometry(size + 2, 0.5, size + 2);
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xae2012 });
+            const roof = new THREE.Mesh(roofGeo, roofMat); roof.position.set(hx, 6, hz); mapGroup.add(roof);
+
+            if(isTwoStory) {
+                const roof2 = new THREE.Mesh(roofGeo, roofMat); roof2.position.set(hx, 12, hz); mapGroup.add(roof2);
+                const liftGeo = new THREE.BoxGeometry(4, 0.2, 4);
+                const liftMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, wireframe: true });
+                const lift = new THREE.Mesh(liftGeo, liftMat); lift.position.set(hx - size/4, 0.1, hz - size/4); mapGroup.add(lift);
+                interactibles.push({ id: `stairs-${hx}-${hz}`, mesh: lift, type: 'stairs', radius: 3.5, targetY: 7.6, groundY: 1.6 });
+            }
+        }
+        generateHouse(-150, -150, false); generateHouse(200, -250, true); generateHouse(-250, 200, true); generateHouse(150, 250, false);
+
+        for(let i = 0; i < 120; i++) {
+            let tx = (Math.random() - 0.5) * (mapSize - 120); let tz = (Math.random() - 0.5) * (mapSize - 120);
+            if(Math.abs(tz) < 50) tz += 100;
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x4a3728 }));
+            trunk.position.set(tx, 4, tz); mapGroup.add(trunk); wallsBB.push(new THREE.Box3().setFromObject(trunk));
+            const leaves = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 8), new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.9 }));
+            leaves.position.set(tx, 8, tz); mapGroup.add(leaves);
+            const bush = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0xff4d6d : 0xffb703 }));
+            bush.position.set(tx + 3, 1, tz + 3); mapGroup.add(bush);
+        }
+
+        const ventPositions = [{x:-145, z:-145}, {x:205, z:-245}, {x:-245, z:205}, {x:155, z:245}, {x:0, z:80}, {x:-100, z:-40}];
+        ventPositions.forEach((pos, idx) => {
+            const vent = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.1, 16), new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.9 }));
+            vent.position.set(pos.x, 0.05, pos.z); mapGroup.add(vent);
+            interactibles.push({ id: `vent-${idx}`, mesh: vent, type: 'vent', radius: 4.0, x: pos.x, z: pos.z });
         });
 
-        // Терминалы починки саботажей
-        const sabLightsMesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: 0x111, emissive: 0xff0000 }));
-        sabLightsMesh.position.set(-38, 0.75, 58); mapGroup.add(sabLightsMesh);
-        interactibles.push({ id: 'sab-lights', mesh: sabLightsMesh, type: 'fix-lights', radius: 3.5 });
 
-        const sabReactorMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: 0x111, emissive: 0xff0000 }));
-        sabReactorMesh.position.set(-58, 1, 0); mapGroup.add(sabReactorMesh);
-        interactibles.push({ id: 'sab-reactor', mesh: sabReactorMesh, type: 'fix-reactor', radius: 4.0 });
-
-
-        // --- ФИЗИКА, КАМЕРА И ДВИЖЕНИЕ ---
-        let playerPos = new THREE.Vector3(0, 1.6, 0);
+        // --- СЕТЕВОЙ МУЛЬТИПЛЕЕР И КОМНАТЫ ---
+        let playerPos = new THREE.Vector3(0, 1.6, 150);
         let yaw = 0, pitch = 0; camera.position.copy(playerPos);
-        const playerRadius = 0.5; const playerBB = new THREE.Box3();
-        let isTaskWindowActive = false; // Блокировка движения во время мини-игры
+        const playerRadius = 0.8; const playerBB = new THREE.Box3();
 
-        const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false, KeyE: false, KeyQ: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
-        window.addEventListener('keydown', (e) => { if(e.code in keys) keys[e.code] = true; });
+        let myId = "", isHost = false, roomCode = "", myRole = "Crewmate";
+        let peer = null, connections = [], networkPlayers = {}, lobbyPlayersData = [];
+
+        let ventUsesLeft = 5, inVent = false, ventTimeLeft = 7, ventInterval = null;
+        let matchTimer = 120, gameActive = false, isMapOpen = false;
+
+        const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false, KeyE: false, KeyQ: false, KeyM: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+        window.addEventListener('keydown', (e) => { 
+            if(e.code in keys) keys[e.code] = true; 
+            if(e.code === 'KeyM' || e.code === 'KeyV') toggleImpostorMap();
+        });
         window.addEventListener('keyup', (e) => { if(e.code in keys) keys[e.code] = false; });
 
-        let isMouseDown = false;
-        window.addEventListener('mousedown', () => isMouseDown = true);
-        window.addEventListener('mouseup', () => isMouseDown = false);
-        window.addEventListener('mousemove', (e) => {
-            if ((document.pointerLockElement === container || isMouseDown) && !isTaskWindowActive) {
-                yaw -= e.movementX * 0.0025; pitch -= e.movementY * 0.0025;
-                pitch = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, pitch));
-            }
-        });
-        container.addEventListener('click', () => { 
-            if(document.getElementById('lobby-screen').style.display === 'none' && !isTaskWindowActive) container.requestPointerLock(); 
-        });
-
-        // Мобильный джойстик
-        const joystickZone = document.getElementById('joystick-zone');
-        const joystickStick = document.getElementById('joystick-stick');
-        let moveVec = { x: 0, z: 0 }; let joystickTouchId = null;
-
-        joystickZone.addEventListener('touchstart', (e) => { joystickTouchId = e.changedTouches[0].identifier; handleJoystick(e.changedTouches[0]); });
-        window.addEventListener('touchmove', (e) => { for(let t of e.touches) { if(t.identifier === joystickTouchId) handleJoystick(t); } });
-        window.addEventListener('touchend', (e) => { for(let t of e.changedTouches) { if(t.identifier === joystickTouchId) { joystickTouchId = null; joystickStick.style.transform = 'translate(0px,0px)'; moveVec = { x: 0, z: 0 }; } } });
-
-        function handleJoystick(t) {
-            const rect = joystickZone.getBoundingClientRect();
-            const cx = rect.left + rect.width/2; const cy = rect.top + rect.height/2;
-            let dx = t.clientX - cx; let dy = t.clientY - cy;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 45); const angle = Math.atan2(dy, dx);
-            joystickStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-            moveVec.x = Math.cos(angle) * (dist/45); moveVec.z = Math.sin(angle) * (dist/45);
-        }
-
-
-        // --- СЕТЕВАЯ АРХИТЕКТУРА (RELAY-СЕРВЕР ДЛЯ 3+ ИГРОКОВ) ---
-        let peer = null, connections = [], networkPlayers = {};
-        let myId = "", isHost = false, roomCode = "", myUsername = "Игрок", myRole = "Crewmate";
-        let lobbyNames = []; let sabotageActive = null; let sabotageTimer = 30; let sabotageInterval = null;
-
         document.getElementById('action-create').onclick = () => {
-            myUsername = document.getElementById('username-input').value || "Хост"; isHost = true;
-            roomCode = Math.floor(100 + Math.random() * 900).toString(); initNetwork(`among-us-true3d-${roomCode}`);
+            isHost = true; roomCode = Math.floor(100 + Math.random() * 900).toString(); initNetwork(`among-hide-${roomCode}`);
         };
         document.getElementById('action-join').onclick = () => {
-            myUsername = document.getElementById('username-input').value || "Игрок"; const code = document.getElementById('code-input').value;
-            if(code.length !== 3) return alert("Нужно 3 цифры!");
+            const code = document.getElementById('code-input').value;
+            if(code.length !== 3) return alert("Введите 3-значный код комнаты!");
             isHost = false; roomCode = code; initNetwork();
         };
 
         function initNetwork(forcedId = null) {
             peer = forcedId ? new Peer(forcedId) : new Peer();
             peer.on('open', (id) => {
-                myId = id; document.getElementById('menu-overlay').style.display = 'none';
+                myId = id;
+                document.getElementById('menu-overlay').style.display = 'none';
                 document.getElementById('lobby-screen').style.display = 'flex';
                 document.getElementById('lobby-code-title').innerText = `КОД КОРАБЛЯ: ${roomCode}`;
-                lobbyNames.push(myUsername); rebuildLobbyUI();
+                
+                lobbyPlayersData.push({ name: myUsername, color: mySelectedColor }); rebuildLobbyUI();
 
                 if(isHost) {
                     document.getElementById('start-game-btn').style.display = 'block';
@@ -311,10 +345,10 @@
                             c.send({ type: 'game-start' });
                             c.send({ type: 'assign-role', role: c.peer === impId ? 'Impostor' : 'Crewmate' });
                         });
-                        setupGameRole(myId === impId ? 'Impostor' : 'Crewmate'); serverStartGame();
+                        setupGameRole(myId === impId ? 'Impostor' : 'Crewmate'); hostStartGame();
                     };
                 } else {
-                    let conn = peer.connect(`among-us-true3d-${roomCode}`); setupConnection(conn);
+                    let conn = peer.connect(`among-hide-${roomCode}`); setupConnection(conn);
                 }
                 gameLoop();
             });
@@ -323,251 +357,223 @@
 
         function setupConnection(conn) {
             connections.push(conn);
-            conn.on('open', () => { conn.send({ type: 'lobby-join', name: myUsername }); });
+            conn.on('open', () => { conn.send({ type: 'lobby-join', name: myUsername, color: mySelectedColor }); });
             conn.on('data', (data) => {
-                if(isHost) { // Главный узел трансляции видимости игроков
-                    connections.forEach(oc => { if(oc.peer !== conn.peer) oc.send({ ...data, senderId: conn.peer }); });
-                }
+                if(isHost) { connections.forEach(oc => { if(oc.peer !== conn.peer) oc.send({ ...data, senderId: conn.peer }); }); }
                 const sender = data.senderId || conn.peer;
                 if(data.type === 'lobby-join') {
-                    if(!lobbyNames.includes(data.name)) lobbyNames.push(data.name); rebuildLobbyUI();
-                    createRemoteMesh(sender, data.name);
-                    if(isHost) connections.forEach(c => c.send({ type: 'lobby-sync', names: lobbyNames }));
+                    lobbyPlayersData.push({ name: data.name, color: data.color }); rebuildLobbyUI();
+                    createRemoteMesh(sender, data.name, data.color);
+                    if(isHost) connections.forEach(c => c.send({ type: 'lobby-sync', players: lobbyPlayersData }));
                 }
-                if(data.type === 'lobby-sync') { lobbyNames = data.names; rebuildLobbyUI(); }
-                if(data.type === 'game-start') { serverStartGame(); }
+                if(data.type === 'lobby-sync') { lobbyPlayersData = data.players; rebuildLobbyUI(); }
+                if(data.type === 'game-start') { document.getElementById('lobby-screen').style.display = 'none'; }
                 if(data.type === 'assign-role') { setupGameRole(data.role); }
+                if(data.type === 'timer-update') { updateTimerUI(data.time); }
+                if(data.type === 'game-over') { endGame(data.winner); }
                 if(data.type === 'player-move') {
-                    if(!networkPlayers[sender]) createRemoteMesh(sender, "Игрок");
-                    networkPlayers[sender].mesh.position.set(data.x, 0.65, data.z);
-                    networkPlayers[sender].mesh.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), data.yaw);
+                    if(!networkPlayers[sender]) createRemoteMesh(sender, "Игрок", data.color || '#fff');
+                    networkPlayers[sender].mesh.position.set(data.x, data.y, data.z);
+                    networkPlayers[sender].mesh.visible = !data.hidden; networkPlayers[sender].role = data.role; networkPlayers[sender].isDead = data.isDead;
+                    if(data.isDead) networkPlayers[sender].mesh.rotation.z = Math.PI / 2;
                 }
-                if(data.type === 'sabotage-trigger') { triggerLocalSabotage(data.sabType); }
-                if(data.type === 'sabotage-fixed') { clearLocalSabotage(); }
-                if(data.type === 'player-killed' && data.target === myId) { myRole = "Ghost"; alert("Вы устранены!"); }
-                if(data.type === 'player-killed') { if(networkPlayers[data.target]) networkPlayers[data.target].mesh.rotation.z = Math.PI / 2; }
+                if(data.type === 'kill-target' && data.target === myId) { myRole = "Ghost"; alert("Вы пойманы Предателем!"); }
             });
         }
 
-        function rebuildLobbyUI() { document.getElementById('lobby-players-list').innerHTML = lobbyNames.map(n => `⚡ [ГОТОВ] ${n}`).join('<br>'); }
-        function serverStartGame() {
-            document.getElementById('lobby-screen').style.display = 'none';
-            document.getElementById('room-code-display').innerText = `Орбита: #${roomCode}`;
-            document.getElementById('tasks-container').innerHTML = interactibles.filter(i => i.type === 'task').map(t => `<div class="task" id="${t.id}">⚠️ [${t.room}] ${t.taskName}</div>`).join('');
-        }
-        function setupGameRole(role) {
-            myRole = role; const scr = document.getElementById('role-screen'); const txt = document.getElementById('role-text');
-            scr.style.display = 'flex';
-            if(myRole === 'Impostor') {
-                txt.innerText = "ПРЕДАТЕЛЬ"; txt.style.color = "#ff2e63";
-                document.getElementById('impostor-panel').style.display = 'flex';
-                document.getElementById('btn-kill-mob').style.display = 'flex';
-            } else { txt.innerText = "ЭКИПАЖ"; txt.style.color = "#00adb5"; }
-            setTimeout(() => scr.style.display = 'none', 3000);
+        function rebuildLobbyUI() {
+            document.getElementById('lobby-players-list').innerHTML = lobbyPlayersData.map(p => `<span style="color:${p.color}">■</span> [ГОТОВ] ${p.name}`).join('<br>');
         }
 
-        function createRemoteMesh(id, name) {
+        function createRemoteMesh(id, name, color) {
             if(networkPlayers[id] || id === myId) return;
-            const geo = new THREE.CylinderGeometry(0.5, 0.5, 1.4, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, metalness: 0.5 });
-            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(0, 0.65, 0);
+            const geo = new THREE.CylinderGeometry(0.6, 0.6, 1.5, 16);
+            const mat = new THREE.MeshStandardMaterial({ color: color });
+            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(0, 0.75, 0);
 
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-            canvas.width = 256; canvas.height = 64; ctx.fillStyle = '#eee'; ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center';
-            ctx.fillText(name, 128, 40);
+            canvas.width = 256; canvas.height = 64; ctx.fillStyle = color; ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center'; ctx.fillText(name, 128, 40);
             const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
-            sprite.position.y = 1.4; sprite.scale.set(2, 0.5, 1); mesh.add(sprite);
+            sprite.position.y = 1.5; sprite.scale.set(2, 0.5, 1); mesh.add(sprite);
 
-            scene.add(mesh); networkPlayers[id] = { mesh, name };
-            document.getElementById('player-count').innerText = (Object.keys(networkPlayers).length + 1);
+            scene.add(mesh); networkPlayers[id] = { mesh, name, color, role: 'Crewmate', isDead: false };
         }
 
 
-        // --- СИСТЕМА САБОТАЖЕЙ ---
-        document.getElementById('sab-lights-btn').onclick = () => sendSabotage('lights');
-        document.getElementById('sab-reactor-btn').onclick = () => sendSabotage('reactor');
+        // --- ЛОГИКА РУЛЕТКИ ПРЕДАТЕЛЯ И РОЛЕЙ ---
+        const roleCanvas = document.getElementById('role-roulette-canvas');
+        const roleCtx = roleCanvas.getContext('2d');
 
-        function sendSabotage(type) {
-            const p = { type: 'sabotage-trigger', sabType: type };
-            connections.forEach(c => c.send(p)); triggerLocalSabotage(type);
-        }
-        function triggerLocalSabotage(type) {
-            sabotageActive = type;
-            if(type === 'lights') { ambientLight.intensity = 0.05; playerLight.distance = 4; }
-            if(type === 'reactor') {
-                document.getElementById('sabotage-alert').style.display = 'block'; sabotageTimer = 30;
-                clearInterval(sabotageInterval);
-                sabotageInterval = setInterval(() => {
-                    sabotageTimer--; document.getElementById('sab-timer').innerText = sabotageTimer;
-                    if(sabotageTimer <= 0) { clearInterval(sabotageInterval); alert("Реактор взорван! Конец игры."); window.location.reload(); }
-                }, 1000);
+        function drawRoleWheel(angle) {
+            const sectors = 6; const arc = (Math.PI * 2) / sectors;
+            roleCtx.clearRect(0, 0, 200, 200);
+            for(let i = 0; i < sectors; i++) {
+                // Чередуем сектора: четные — Экипаж (Голубой), нечетные — Предатель (Красный)
+                roleCtx.fillStyle = (i % 2 === 0) ? '#00e5ff' : '#ff2e63';
+                roleCtx.beginPath(); roleCtx.moveTo(100, 100);
+                roleCtx.arc(100, 100, 95, angle + i * arc, angle + (i + 1) * arc);
+                roleCtx.fill();
+
+                // Текст на секторах
+                roleCtx.save(); roleCtx.translate(100, 100); roleCtx.rotate(angle + i * arc + arc / 2);
+                roleCtx.fillStyle = '#000000'; roleCtx.font = 'bold 11px sans-serif'; roleCtx.textAlign = 'right';
+                roleCtx.fillText(i % 2 === 0 ? 'МИРНЫЙ' : 'ОХОТНИК', 85, 4); roleCtx.restore();
             }
-        }
-        function fixSabotage(type) { connections.forEach(c => c.send({ type: 'sabotage-fixed' })); clearLocalSabotage(); }
-        function clearLocalSabotage() {
-            if(sabotageActive === 'lights') { ambientLight.intensity = 1.5; playerLight.distance = 15; }
-            if(sabotageActive === 'reactor') document.getElementById('sabotage-alert').style.display = 'none';
-            clearInterval(sabotageInterval); sabotageActive = null;
+            // Центральная заглушка
+            roleCtx.fillStyle = '#050508'; roleCtx.beginPath(); roleCtx.arc(100, 100, 22, 0, Math.PI * 2); roleCtx.fill();
+            roleCtx.strokeStyle = '#ffffff'; roleCtx.lineWidth = 2; roleCtx.stroke();
         }
 
-
-        // --- ДВИЖОК НАСТОЯЩИХ ИНТЕРАКТИВНЫХ МИНИ-ИГР ---
-        let currentActiveTaskRef = null;
-        let calibrationInterval = null;
-
-        function startInteractiveTask(task) {
-            currentActiveTaskRef = task;
-            isTaskWindowActive = true;
-            document.exitPointerLock(); // Освобождаем мышь игрока для прохождения кликабельного квеста
-
-            const win = document.getElementById('task-window');
-            const title = document.getElementById('task-title');
-            const content = document.getElementById('task-content');
+        function setupGameRole(role) {
+            myRole = role;
+            document.getElementById('room-code-display').innerText = `Орбита Пряток: #${roomCode}`;
             
-            title.innerText = `[${task.room}] - ${task.taskName}`;
-            content.innerHTML = ""; // Очищаем старый интерфейс
-            win.style.display = 'flex';
+            const scr = document.getElementById('role-screen');
+            const txt = document.getElementById('role-text');
+            const sub = document.getElementById('role-sub');
+            
+            txt.innerText = ""; sub.innerText = "";
+            scr.style.display = 'flex';
 
-            // 1. ИГРА: СОЕДИНЕНИЕ ПРОВОДОВ
-            if(task.gameType === 'wires') {
-                content.innerHTML = `
-                    <div class="wires-container">
-                        <div class="wire-column" id="wires-left">
-                            <div class="wire-node" data-color="red" style="background:red;">L1</div>
-                            <div class="wire-node" data-color="blue" style="background:blue;">L2</div>
-                            <div class="wire-node" data-color="yellow" style="background:yellow;">L3</div>
-                            <div class="wire-node" data-color="green" style="background:green;">L4</div>
-                        </div>
-                        <div style="font-size:12px; color:#888; text-align:center; align-self:center;">Кликни провод слева,<br>потом справа!</div>
-                        <div class="wire-column" id="wires-right">
-                            <div class="wire-node" data-color="blue" style="background:blue;">R1</div>
-                            <div class="wire-node" data-color="red" style="background:red;">R2</div>
-                            <div class="wire-node" data-color="green" style="background:green;">R3</div>
-                            <div class="wire-node" data-color="yellow" style="background:yellow;">R4</div>
-                        </div>
-                    </div>
-                `;
-                let selectedLeft = null;
-                let matches = 0;
+            // Математический расчет остановки рулетки под стрелку сверху (угол 1.5 * PI)
+            const sectors = 6; const arc = (Math.PI * 2) / sectors;
+            const validIndices = (myRole === 'Impostor') ? [1, 3, 5] : [0, 2, 4];
+            const chosenIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
+            
+            let targetAngle = (1.5 * Math.PI - (chosenIndex + 0.5) * arc);
+            while (targetAngle < 0) targetAngle += Math.PI * 2;
+            const totalRotation = targetAngle + (Math.PI * 2 * 6); // 6 полных кругов саспенса
 
-                const leftNodes = content.querySelectorAll('#wires-left .wire-node');
-                const rightNodes = content.querySelectorAll('#wires-right .wire-node');
+            let startTimestamp = null;
+            const duration = 3500; // 3.5 секунды кручения
 
-                leftNodes.forEach(node => {
-                    node.onclick = () => {
-                        if(node.classList.contains('connected')) return;
-                        leftNodes.forEach(n => n.classList.remove('active'));
-                        node.classList.add('active'); selectedLeft = node.dataset.color;
-                    };
-                });
+            function animateRoleWheel(timestamp) {
+                if (!startTimestamp) startTimestamp = timestamp;
+                let elapsed = timestamp - startTimestamp;
+                let progress = Math.min(elapsed / duration, 1);
+                
+                // Функция плавного замедления (Ease Out Cubic)
+                let easeOut = 1 - Math.pow(1 - progress, 3);
+                let currentAngle = easeOut * totalRotation;
+                
+                drawRoleWheel(currentAngle);
 
-                rightNodes.forEach(node => {
-                    node.onclick = () => {
-                        if(node.classList.contains('connected') || !selectedLeft) return;
-                        if(node.dataset.color === selectedLeft) {
-                            // Совпало!
-                            node.classList.add('connected');
-                            content.querySelector(`#wires-left .wire-node[data-color="${selectedLeft}"]`).classList.add('connected');
-                            content.querySelector(`#wires-left .wire-node[data-color="${selectedLeft}"]`).classList.remove('active');
-                            selectedLeft = null; matches++;
-                            if(matches === 4) completeActiveTask();
-                        } else {
-                            leftNodes.forEach(n => n.classList.remove('active')); selectedLeft = null;
-                        }
-                    };
-                });
-            }
-
-            // 2. ИГРА: СКАЧИВАНИЕ ДАННЫХ
-            if(task.gameType === 'download') {
-                content.innerHTML = `
-                    <div class="download-box">
-                        <div style="font-size:14px; margin-bottom:5px;">УСТАНОВКА СОЕДИНЕНИЯ...</div>
-                        <div class="progress-bar"><div class="progress-fill" id="dl-fill"></div></div>
-                        <button class="dl-btn" id="dl-start-action">Начать загрузку</button>
-                    </div>
-                `;
-                const btn = content.querySelector('#dl-start-action');
-                const fill = content.querySelector('#dl-fill');
-                btn.onclick = () => {
-                    btn.disabled = true; btn.innerText = "Загрузка..."; btn.style.background = "#393e46";
-                    let pct = 0;
-                    let interval = setInterval(() => {
-                        pct += 4; fill.style.width = pct + "%";
-                        if(pct >= 100) { clearInterval(interval); completeActiveTask(); }
-                    }, 100);
-                };
-            }
-
-            // 3. ИГРА: КАЛИБРОВКА СКОРОСТИ СИНХРОНИЗАЦИИ
-            if(task.gameType === 'calibrate') {
-                content.innerHTML = `
-                    <div class="calibrate-box">
-                        <div style="font-size:12px; margin-bottom:10px; color:#00adb5;">ПОПАДИ БЕГУНКОМ В ЦЕНТРАЛЬНУЮ ЗОНУ</div>
-                        <div class="track">
-                            <div class="target-zone"></div>
-                            <div class="slider-pointer" id="cal-pointer"></div>
-                        </div>
-                        <button class="cal-btn" id="cal-trigger">ФИКСАЦИЯ</button>
-                    </div>
-                `;
-                const pointer = content.querySelector('#cal-pointer');
-                const triggerBtn = content.querySelector('#cal-trigger');
-                let pos = 0; let dir = 2.5;
-
-                calibrationInterval = setInterval(() => {
-                    pos += dir; if(pos >= 96 || pos <= 0) dir = -dir;
-                    pointer.style.left = pos + "%";
-                }, 20);
-
-                triggerBtn.onclick = () => {
-                    // Проверяем, попал ли игрок в зону (между 42% и 58%)
-                    if(pos >= 40 && pos <= 58) {
-                        clearInterval(calibrationInterval); completeActiveTask();
+                if (progress < 1) { requestAnimationFrame(animateRoleWheel); } 
+                else {
+                    // Колесо остановилось — выдаем вердикт!
+                    gameActive = true;
+                    if(myRole === 'Impostor') {
+                        txt.innerText = "ВЫ ПРЕДАТЕЛЬ"; txt.style.color = "#ff2e63";
+                        sub.innerText = "Ваша цель — поймать команду за 2 минуты. Открывайте Портативный Радар кнопкой [ M ]!";
+                        document.getElementById('btn-kill-mob').style.display = 'flex';
+                        document.getElementById('btn-map-mob').style.display = 'flex';
+                        document.getElementById('mechanics-info').innerHTML = `⚙️ Роль: <b>Предатель</b><br>🔮 Способность: Радар выживших (M)`;
                     } else {
-                        // Мигание ошибкой и перезапуск
-                        pointer.style.background = "#ff2e63"; alert("Мимо! Попробуйте еще раз.");
+                        txt.innerText = "ВЫ ЭКИПАЖ"; txt.style.color = "#00e5ff";
+                        sub.innerText = "У вас нет карты. Скрывайтесь в кустах и Люках безопасности (кнопка E) до конца таймера!";
+                        updateCrewHUD();
                     }
-                };
+                    setTimeout(() => { scr.style.display = 'none'; }, 3000);
+                }
+            }
+            requestAnimationFrame(animateRoleWheel);
+        }
+
+
+        // --- ИГРОВАЯ СИСТЕМА И ТАЙМЕРЫ МАТЧА ---
+        function hostStartGame() {
+            let timerInterval = setInterval(() => {
+                if(!gameActive) { clearInterval(timerInterval); return; }
+                matchTimer--;
+                connections.forEach(c => c.send({ type: 'timer-update', time: matchTimer }));
+                updateTimerUI(matchTimer);
+
+                if(matchTimer <= 0) {
+                    clearInterval(timerInterval); connections.forEach(c => c.send({ type: 'game-over', winner: 'Crewmate' })); endGame('Crewmate');
+                }
+                let aliveCrew = (myRole === 'Crewmate');
+                for(let id in networkPlayers) { if(networkPlayers[id].role === 'Crewmate' && !networkPlayers[id].isDead) aliveCrew = true; }
+                if(!aliveCrew) {
+                    clearInterval(timerInterval); connections.forEach(c => c.send({ type: 'game-over', winner: 'Impostor' })); endGame('Impostor');
+                }
+            }, 1000);
+        }
+
+        function updateCrewHUD() {
+            if(myRole !== 'Crewmate') return;
+            document.getElementById('mechanics-info').innerHTML = `⚙️ Роль: <b>Выживший</b><br>🕳️ Заряды Люков: <b>${ventUsesLeft}/5</b><br>⏳ Время в люке: ${ventTimeLeft}с`;
+        }
+
+        function updateTimerUI(t) {
+            let m = Math.floor(t / 60).toString().padStart(2, '0'); let s = (t % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `ОСТАЛОСЬ: ${m}:${s}`;
+        }
+
+        function endGame(winner) {
+            gameActive = false; document.exitPointerLock();
+            alert(winner === 'Impostor' ? "ПОБЕДА ПРЕДАТЕЛЯ! Он поймал всех." : "ПОБЕДА ЭКИПАЖА! Кто-то смог выжить.");
+            window.location.reload();
+        }
+
+
+        // --- РАДАР ПРЕДАТЕЛЯ ---
+        const radarCanvas = document.getElementById('impostor-map');
+        const radarCtx = radarCanvas.getContext('2d');
+
+        function toggleImpostorMap() {
+            if(myRole !== 'Impostor' || !gameActive) return;
+            isMapOpen = !isMapOpen; radarCanvas.style.display = isMapOpen ? 'block' : 'none';
+            if(isMapOpen) document.exitPointerLock();
+        }
+
+        function drawRadar() {
+            if(!isMapOpen) return;
+            radarCtx.clearRect(0, 0, 450, 450);
+            radarCtx.fillStyle = 'rgba(5, 15, 30, 0.85)'; radarCtx.beginPath(); radarCtx.arc(225, 225, 210, 0, Math.PI*2); radarCtx.fill();
+            radarCtx.strokeStyle = '#ff2e63'; radarCtx.lineWidth = 2; radarCtx.stroke();
+            radarCtx.fillStyle = '#ff2e63'; radarCtx.beginPath(); radarCtx.arc(225, 225, 7, 0, Math.PI*2); radarCtx.fill();
+
+            for(let id in networkPlayers) {
+                let p = networkPlayers[id];
+                if(p.role === 'Crewmate' && !p.isDead && p.mesh.visible) {
+                    let dx = p.mesh.position.x - playerPos.x; let dz = p.mesh.position.z - playerPos.z;
+                    let scale = 0.35; let rx = 225 + dx * scale; let ry = 225 + dz * scale;
+                    if(Math.sqrt((rx-225)**2 + (ry-225)**2) < 205) {
+                        radarCtx.fillStyle = '#00e5ff'; radarCtx.beginPath(); radarCtx.arc(rx, ry, 6, 0, Math.PI*2); radarCtx.fill();
+                    }
+                }
             }
         }
 
-        function completeActiveTask() {
-            if(!currentActiveTaskRef) return;
-            const tDiv = document.getElementById(currentActiveTaskRef.id);
-            if(tDiv && !tDiv.classList.contains('done')) {
-                tDiv.classList.add('done'); tDiv.innerText = `✅ ${currentActiveTaskRef.taskName}`;
+
+        // --- ДВИЖЕНИЕ И ЦИКЛ ИГРЫ ---
+        let lastX = 0, lastZ = 0, ePressedPrev = false, qPressedPrev = false;
+        let isMouseDown = false; let moveVec = { x: 0, z: 0 };
+
+        window.addEventListener('mousedown', () => isMouseDown = true);
+        window.addEventListener('mouseup', () => isMouseDown = false);
+        window.addEventListener('mousemove', (e) => {
+            if ((document.pointerLockElement === container || isMouseDown) && !inVent && gameActive && !isMapOpen) {
+                yaw -= e.movementX * 0.0025; pitch -= e.movementY * 0.0025;
+                pitch = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, pitch));
             }
-            closeActiveTask();
-        }
-
-        function closeActiveTask() {
-            clearInterval(calibrationInterval);
-            document.getElementById('task-window').style.display = 'none';
-            isTaskWindowActive = false; currentActiveTaskRef = null;
-        }
-
-
-        // --- ОСНОВНОЙ ЦИКЛ ОБНОВЛЕНИЯ ИГРЫ ---
-        let lastX = 0, lastZ = 0; let ePressedPrev = false, qPressedPrev = false;
+        });
+        container.addEventListener('click', () => { if(gameActive && !isMapOpen) container.requestPointerLock(); });
 
         function gameLoop() {
             requestAnimationFrame(gameLoop);
-            if(document.getElementById('lobby-screen').style.display !== 'none') { renderer.render(scene, camera); return; }
+            if(!gameActive) { renderer.render(scene, camera); return; }
 
-            // Если окно задания активно — замораживаем игрока, рассчитываем только рендеринг
-            if(!isTaskWindowActive) {
-                if(joystickTouchId === null) {
-                    moveVec = { x: 0, z: 0 };
-                    if(keys.KeyW || keys.ArrowUp) moveVec.z = 1; if(keys.KeyS || keys.ArrowDown) moveVec.z = -1;
-                    if(keys.KeyA || keys.ArrowLeft) moveVec.x = -1; if(keys.KeyD || keys.ArrowRight) moveVec.x = 1;
-                }
+            if(!inVent && myRole !== 'Ghost') {
+                moveVec = { x: 0, z: 0 };
+                if(keys.KeyW || keys.ArrowUp) moveVec.z = 1; if(keys.KeyS || keys.ArrowDown) moveVec.z = -1;
+                if(keys.KeyA || keys.ArrowLeft) moveVec.x = -1; if(keys.KeyD || keys.ArrowRight) moveVec.x = 1;
 
                 let dirForward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                 let dirSide = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-                let prePos = playerPos.clone(); const speed = 0.08;
+                let prePos = playerPos.clone();
+                const speed = (myRole === 'Impostor') ? 0.65 : 0.45;
 
-                // Передвижение по осям с барьерами коллизий
                 playerPos.x += dirForward.x * moveVec.z * speed + dirSide.x * moveVec.x * speed;
                 playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius*2, 2, playerRadius*2));
                 for(let box of wallsBB) { if(playerBB.intersectsBox(box)) { playerPos.x = prePos.x; break; } }
@@ -580,54 +586,61 @@
             camera.position.copy(playerPos); camera.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), yaw); camera.rotateX(pitch);
             playerLight.position.copy(playerPos);
 
-            if(Math.abs(playerPos.x - lastX) > 0.01 || Math.abs(playerPos.z - lastZ) > 0.01) {
-                connections.forEach(c => c.send({ type: 'player-move', x: playerPos.x, z: playerPos.z, yaw: yaw }));
+            if(Math.abs(playerPos.x - lastX) > 0.02 || Math.abs(playerPos.z - lastZ) > 0.02) {
+                connections.forEach(c => c.send({ 
+                    type: 'player-move', x: playerPos.x, y: playerPos.y, z: playerPos.z, 
+                    hidden: inVent, role: myRole, isDead: (myRole === 'Ghost'), color: mySelectedColor
+                }));
                 lastX = playerPos.x; lastZ = playerPos.z;
             }
 
-            // РАСЧЕТ ДИСТАНЦИЙ ДО КОНСОЛЕЙ СВЕТА И ЗАДАНИЙ
-            let nearInteractible = null;
-            for(let obj of interactibles) { if(camera.position.distanceTo(obj.mesh.position) < obj.radius) { nearInteractible = obj; break; } }
+            let nearObj = null;
+            for(let obj of interactibles) { if(camera.position.distanceTo(obj.mesh.position) < obj.radius) { nearObj = obj; break; } }
 
             const prompt = document.getElementById('interaction-prompt');
-            if(nearInteractible && !isTaskWindowActive) {
+            if(nearObj && myRole !== 'Ghost') {
                 prompt.style.display = 'block';
                 let triggerE = (keys.KeyE && !ePressedPrev);
-                document.getElementById('btn-use-mob').onclick = () => { triggerE = true; };
-
                 if(triggerE) {
-                    if(nearInteractible.type === 'task') {
-                        const tDiv = document.getElementById(nearInteractible.id);
-                        if(!tDiv.classList.contains('done')) startInteractiveTask(nearInteractible);
+                    if(nearObj.type === 'vent' && myRole === 'Crewmate') {
+                        if(inVent) { exitVentAction(); } 
+                        else if(ventUsesLeft > 0) {
+                            inVent = true; ventUsesLeft--; ventTimeLeft = 7;
+                            playerPos.set(nearObj.x, 0.5, nearObj.z); updateCrewHUD();
+                            ventInterval = setInterval(() => {
+                                ventTimeLeft--; updateCrewHUD();
+                                if(ventTimeLeft <= 0) exitVentAction();
+                            }, 1000);
+                        }
                     }
-                    if(nearInteractible.type === 'fix-lights' && sabotageActive === 'lights') { fixSabotage('lights'); alert("Электроснабжение восстановлено!"); }
-                    if(nearInteractible.type === 'fix-reactor' && sabotageActive === 'reactor') { fixSabotage('reactor'); alert("Система ядра стабилизирована!"); }
+                    if(nearObj.type === 'stairs') { playerPos.y = (playerPos.y < 4) ? nearObj.targetY : nearObj.groundY; }
                 }
-            } else { prompt.style.display = 'none'; document.getElementById('btn-use-mob').onclick = null; }
+            } else { prompt.style.display = 'none'; }
             ePressedPrev = keys.KeyE;
 
-            // РЕЖИМ ОХОТЫ ПРЕДАТЕЛЯ (УБИЙСТВА НА Q)
-            if(myRole === 'Impostor' && !isTaskWindowActive) {
+            if(myRole === 'Impostor') {
                 let targetId = null;
-                for(let id in networkPlayers) { if(camera.position.distanceTo(networkPlayers[id].mesh.position) < 3.0) { targetId = id; break; } }
+                for(let id in networkPlayers) {
+                    if(networkPlayers[id].role === 'Crewmate' && !networkPlayers[id].isDead && camera.position.distanceTo(networkPlayers[id].mesh.position) < 5.0) { targetId = id; break; }
+                }
                 const killBtn = document.getElementById('btn-kill-mob');
                 if(targetId) {
-                    killBtn.style.opacity = '1'; let triggerQ = (keys.KeyQ && !qPressedPrev);
-                    killBtn.onclick = () => { triggerQ = true; };
-                    if(triggerQ) {
-                        connections.forEach(c => c.send({ type: 'player-killed', target: targetId }));
-                        networkPlayers[targetId].mesh.rotation.z = Math.PI / 2;
+                    killBtn.style.opacity = '1';
+                    if(keys.KeyQ && !qPressedPrev) {
+                        connections.forEach(c => c.send({ type: 'kill-target', target: targetId }));
+                        networkPlayers[targetId].isDead = true; networkPlayers[targetId].mesh.rotation.z = Math.PI / 2;
                     }
-                } else { killBtn.style.opacity = '0.3'; killBtn.onclick = null; }
+                } else { killBtn.style.opacity = '0.3'; }
             }
             qPressedPrev = keys.KeyQ;
 
-            renderer.render(scene, camera);
+            drawRadar(); renderer.render(scene, camera);
         }
 
+        function exitVentAction() { clearInterval(ventInterval); inVent = false; playerPos.z += 4; updateCrewHUD(); }
+
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
