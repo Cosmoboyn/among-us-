@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Among Us 3D: Гранд Обнова + Рулетка Ролей</title>
+    <title>Among Us 3D: Реалистичные Прятки</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #050508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #070a14; font-family: 'Segoe UI', sans-serif; }
         #game-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        /* МЕНЮ, РУЛЕТКА СКИНОВ И НАСТРОЙКИ */
+        /* МЕНЮ */
         #menu-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #141a29 0%, #05070c 100%);
+            background: radial-gradient(circle at center, #1a233a 0%, #050811 100%);
             z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
             overflow-y: auto; padding: 20px;
         }
-        .menu-box { background: rgba(15, 22, 36, 0.95); padding: 30px; border-radius: 16px; border: 2px solid #1f4068; text-align: center; width: 100%; max-width: 440px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
-        h1 { font-size: 28px; color: #00e5ff; margin-bottom: 5px; letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 10px rgba(0,229,255,0.4); }
-        .subtitle { font-size: 12px; color: #ff2e63; font-weight: bold; margin-bottom: 20px; letter-spacing: 3px; }
+        .menu-box { background: rgba(15, 25, 44, 0.95); padding: 30px; border-radius: 16px; border: 2px solid #00e5ff; text-align: center; width: 100%; max-width: 440px; box-shadow: 0 10px 40px rgba(0,229,255,0.2); }
+        h1 { font-size: 28px; color: #ff2e63; margin-bottom: 5px; letter-spacing: 2px; font-weight: 900; text-shadow: 0 0 15px rgba(255,46,99,0.4); }
+        .subtitle { font-size: 11px; color: #00e5ff; font-weight: bold; margin-bottom: 20px; letter-spacing: 3px; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 2px solid #1f4068; background: #0b0c10; color: white; font-size: 16px; text-align: center; outline: none; }
         input:focus { border-color: #00e5ff; }
         
-        /* БЛОК РУЛЕТКИ С КАНВАСОМ (СКИНЫ) */
-        .roulette-container { margin: 15px 0; background: #0b0c10; border: 1px solid #1f4068; padding: 15px; border-radius: 8px; position: relative; }
+        /* РУЛЕТКА */
+        .roulette-container { margin: 15px 0; background: #070a14; border: 1px solid #1f4068; padding: 15px; border-radius: 8px; position: relative; }
         #roulette-canvas { background: #111; border-radius: 50%; border: 3px solid #00e5ff; }
         .roulette-pointer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #ff2e63; z-index: 10; }
         .skin-preview-text { font-size: 14px; margin-top: 8px; color: #aaa; }
@@ -46,39 +46,34 @@
         #lobby-players-list { text-align: left; background: #05070c; padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto; font-size: 16px; margin: 20px 0; border: 1px solid #1f4068; color: #00e5ff; line-height: 1.6; }
         #start-game-btn { width: 100%; padding: 16px; background: #ff2e63; color: white; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: none; text-transform: uppercase; box-shadow: 0 4px 15px rgba(255,46,99,0.4); }
 
-        /* ЭКРАН РУЛЕТКИ РОЛЕЙ (ПРЕДАТЕЛЬ / ЭКИПАЖ) */
+        /* РУЛЕТКА РОЛЕЙ */
         #role-screen { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #000; z-index: 150; align-items: center; justify-content: center; flex-direction: column; 
         }
         #role-roulette-box { position: relative; margin-bottom: 25px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        #role-roulette-canvas { background: #050508; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
-        .role-pointer { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ffffff; margin-bottom: 5px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        #role-roulette-canvas { background: #050508; border-radius: 50%; border: 4px solid #fff; }
+        .role-pointer { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 20px solid #ffffff; margin-bottom: 5px; }
         #role-title { font-size: 20px; color: #aaa; letter-spacing: 3px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; }
         #role-text { font-size: 44px; font-weight: 900; letter-spacing: 6px; text-align: center; min-height: 55px; }
         #role-sub { font-size: 16px; color: #888; margin-top: 15px; text-align: center; max-width: 80%; }
 
-        /* ИНТЕРФЕЙС И ХУД */
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(11,12,16,0.9); padding: 15px 20px; border-radius: 12px; border: 1px solid #1f4068; color: #fff; pointer-events: none; min-width: 250px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        /* HUD */
+        #hud { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(11,12,16,0.9); padding: 15px 20px; border-radius: 12px; border: 1px solid #1f4068; color: #fff; pointer-events: none; min-width: 250px; }
         #timer-display { font-size: 24px; color: #ff2e63; font-weight: bold; font-family: monospace; text-align: center; margin-bottom: 5px; background: rgba(255,46,99,0.1); padding: 5px; border-radius: 6px; }
         #room-code-display { color: #00e5ff; font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 10px; }
         #mechanics-info { border-top: 1px solid #1f4068; padding-top: 8px; font-size: 13px; color: #eee; }
 
-        #interaction-prompt { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #00e5ff; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; border: 1px solid #00e5ff; display: none; z-index: 10; text-transform: uppercase; box-shadow: 0 0 15px rgba(0,229,255,0.4); }
+        #interaction-prompt { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #00e5ff; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; border: 1px solid #00e5ff; display: none; z-index: 10; text-transform: uppercase; }
+        #impostor-map { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; height: 450px; background: rgba(5, 10, 20, 0.9); border: 3px solid #ff2e63; border-radius: 50%; z-index: 400; }
 
-        #impostor-map {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 450px; height: 450px; background: rgba(5, 10, 20, 0.9); border: 3px solid #ff2e63;
-            border-radius: 50%; z-index: 400; box-shadow: 0 0 50px rgba(255,46,99,0.6);
-        }
-
-        /* МОБИЛЬНОЕ УПРАВЛЕНИЕ */
+        /* УПРАВЛЕНИЕ МУВ */
         #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border: 2px solid #1f4068; border-radius: 50%; z-index: 10; touch-action: none; display: flex; align-items: center; justify-content: center; }
         #joystick-stick { width: 50px; height: 50px; background: #00e5ff; border-radius: 50%; position: absolute; pointer-events: none; }
         .action-group { position: absolute; bottom: 40px; right: 40px; display: flex; flex-direction: column; gap: 15px; z-index: 10; }
         .action-btn { width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 14px; border: 2px solid #1f4068; background: #0f1624; cursor: pointer; display: flex; align-items: center; justify-content: center; text-transform: uppercase; }
         #btn-use-mob { border-color: #00e5ff; color: #00e5ff; }
-        #btn-kill-mob { display: none; background: #ff2e63; border-color: #ff2e63; box-shadow: 0 0 15px #ff2e63; }
+        #btn-kill-mob { display: none; background: #ff2e63; border-color: #ff2e63; }
         #btn-map-mob { display: none; background: #111; border-color: #ff2e63; color: #ff2e63; }
     </style>
 </head>
@@ -87,17 +82,15 @@
     <div id="menu-overlay">
         <div class="menu-box">
             <h1>AMONG US 3D</h1>
-            <div class="subtitle">ГРАНД ОБНОВА: ПРЯТКИ</div>
+            <div class="subtitle">РЕАЛИСТИЧНЫЕ ПРЯТКИ: WORLD EARTH</div>
             
             <input type="text" id="username-input" placeholder="ВАШ НИКНЕЙМ">
             
             <div class="roulette-container">
                 <div class="roulette-pointer"></div>
                 <canvas id="roulette-canvas" width="120" height="120"></canvas>
-                <div class="skin-preview-text">
-                    Ваш скин: <span id="current-skin-badge"></span>
-                </div>
-                <button class="menu-btn btn-spin" id="spin-btn">Крутить рулетку 🎲</button>
+                <div class="skin-preview-text">Ваш цвет: <span id="current-skin-badge"></span></div>
+                <button class="menu-btn btn-spin" id="spin-btn">Выбрать цвет 🎲</button>
             </div>
 
             <button class="menu-btn btn-create" id="action-create">Создать лобби</button>
@@ -124,8 +117,7 @@
         <div id="role-sub"></div>
     </div>
     
-    <div id="interaction-prompt">Нажмите [ E ]</div>
-
+    <div id="interaction-prompt">Действие [ E ]</div>
     <canvas id="impostor-map" width="450" height="450"></canvas>
 
     <div id="hud">
@@ -144,10 +136,10 @@
     </div>
 
     <script>
-        // --- ЛОГИКА СОХРАНЕНИЙ И РУЛЕТКИ СКИНОВ ---
+        // --- ЛОГИКА ЦВЕТОВ И СОХРАНЕНИЙ ---
         const skinColors = ['#ff2e63', '#00e5ff', '#00b4d8', '#ffb703', '#9d4edd', '#38b000', '#ff70a6', '#f77f00', '#ffffff', '#70e000'];
         let mySelectedColor = localStorage.getItem('among_saved_color') || '#ff2e63';
-        let myUsername = localStorage.getItem('among_saved_name') || ("Выживший_" + Math.floor(Math.random()*900));
+        let myUsername = localStorage.getItem('among_saved_name') || ("Crewmate_" + Math.floor(Math.random()*900));
 
         document.getElementById('username-input').value = myUsername;
         document.getElementById('current-skin-badge').style.backgroundColor = mySelectedColor;
@@ -172,12 +164,9 @@
         let isSpinning = false;
         document.getElementById('spin-btn').onclick = () => {
             if (isSpinning) return;
-            isSpinning = true;
-            let speed = 0.4 + Math.random() * 0.3;
-            let friction = 0.98;
-
+            isSpinning = true; let speed = 0.4 + Math.random() * 0.3;
             function animateSpin() {
-                rouletteAngle += speed; speed *= friction; drawRoulette();
+                rouletteAngle += speed; speed *= 0.98; drawRoulette();
                 if (speed > 0.002) { requestAnimationFrame(animateSpin); } 
                 else {
                     isSpinning = false;
@@ -185,7 +174,6 @@
                     let normalizedAngle = (3 * Math.PI / 2 - rouletteAngle) % (Math.PI * 2);
                     if (normalizedAngle < 0) normalizedAngle += Math.PI * 2;
                     let winningIndex = Math.floor(normalizedAngle / arc) % skinColors.length;
-                    
                     mySelectedColor = skinColors[winningIndex];
                     localStorage.setItem('among_saved_color', mySelectedColor);
                     document.getElementById('current-skin-badge').style.backgroundColor = mySelectedColor;
@@ -195,21 +183,20 @@
         };
 
         document.getElementById('username-input').oninput = (e) => {
-            myUsername = e.target.value || "Игрок";
-            localStorage.setItem('among_saved_name', myUsername);
+            myUsername = e.target.value || "Игрок"; localStorage.setItem('among_saved_name', myUsername);
         };
 
-
-        // --- ИНИЦИАЛИЗАЦИЯ ТРЕХМЕРНОГО МИРА КАРТЫ ---
+        // --- ИНИЦИАЛИЗАЦИЯ РЕАЛИСТИЧНОГО МИРА (WORLD EARTH) ---
         const container = document.getElementById('game-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0f1d);
-        
-        const ambientLight = new THREE.AmbientLight(0xdff0ff, 0.6); scene.add(ambientLight);
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8); sunLight.position.set(100, 300, 100); scene.add(sunLight);
-        const playerLight = new THREE.PointLight(0xffffff, 0.6, 25); scene.add(playerLight);
+        scene.background = new THREE.Color(0x111a2e);
+        scene.fog = new THREE.FogExp2(0x111a2e, 0.0025); // Реалистичный туман
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.55); scene.add(ambientLight);
+        const sunLight = new THREE.DirectionalLight(0xfff3e0, 0.85); sunLight.position.set(150, 400, 150); scene.add(sunLight);
+        const playerLight = new THREE.PointLight(0xffffff, 0.7, 30); scene.add(playerLight);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 3000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
@@ -219,90 +206,119 @@
         const interactibles = [];
         scene.add(mapGroup);
 
-        const mapSize = 2000;
+        // Газон в стиле World Earth
+        const mapSize = 2200;
         const floorGeo = new THREE.PlaneGeometry(mapSize, mapSize);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x3b5323, roughness: 0.9, metalness: 0.1 });
-        const floor = new THREE.Mesh(floorGeo, floorMat); floor.rotation.x = -Math.PI / 2;
-        mapGroup.add(floor);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x27ae60, roughness: 0.95 }); // Сочная трава
+        const floor = new THREE.Mesh(floorGeo, floorMat); floor.rotation.x = -Math.PI / 2; mapGroup.add(floor);
 
-        const domeGeo = new THREE.SphereGeometry(mapSize / 1.3, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
-        const domeMat = new THREE.MeshBasicMaterial({ color: 0x00a8ff, wireframe: true, transparent: true, opacity: 0.03 });
-        const dome = new THREE.Mesh(domeGeo, domeMat); scene.add(dome);
-
-        function createWall(x, z, w, d, h = 6, color = 0x5c6b73) {
+        // Границы карты
+        function createWall(x, z, w, d, h = 15, color = 0x1e272c) {
             const geo = new THREE.BoxGeometry(w, h, d);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, h/2, z); mapGroup.add(mesh);
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
+            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(x, h/2, z); mapGroup.add(mesh);
             wallsBB.push(new THREE.Box3().setFromObject(mesh));
-            return mesh;
         }
-
         const halfM = mapSize / 2;
-        createWall(0, -halfM, mapSize, 10, 20, 0x111625);
-        createWall(0, halfM, mapSize, 10, 20, 0x111625);
-        createWall(-halfM, 0, 10, mapSize, 20, 0x111625);
-        createWall(halfM, 0, 10, mapSize, 20, 0x111625);
+        createWall(0, -halfM, mapSize, 15); createWall(0, halfM, mapSize, 15);
+        createWall(-halfM, 0, 15, mapSize); createWall(halfM, 0, 15, mapSize);
 
-        const riverWidth = 60;
+        // Реалистичная река (БЕЗ коллизий стен, в ней можно плавать!)
+        const riverWidth = 70;
         const riverGeo = new THREE.PlaneGeometry(mapSize, riverWidth);
-        const riverMat = new THREE.MeshStandardMaterial({ color: 0x0077b6, roughness: 0.2, metalness: 0.8 });
+        const riverMat = new THREE.MeshStandardMaterial({ color: 0x00a8ff, roughness: 0.1, metalness: 0.6, transparent: true, opacity: 0.85 });
         const river = new THREE.Mesh(riverGeo, riverMat); river.rotation.x = -Math.PI / 2; river.position.set(0, 0.05, 0);
         mapGroup.add(river);
 
-        createWall(-halfM / 2 - 10, 0, halfM - 20, riverWidth, 8, 0x005f73);
-        createWall(halfM / 2 + 10, 0, halfM - 20, riverWidth, 8, 0x005f73);
+        // Мост через реку
+        const bridgeGeo = new THREE.BoxGeometry(50, 2, riverWidth + 6);
+        const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d, roughness: 0.9 });
+        const bridge = new THREE.Mesh(bridgeGeo, bridgeMat); bridge.position.set(0, 1.1, 0); mapGroup.add(bridge);
 
-        const bridgeGeo = new THREE.BoxGeometry(40, 2, riverWidth + 4);
-        const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x6d597a, roughness: 0.9 });
-        const bridge = new THREE.Mesh(bridgeGeo, bridgeMat); bridge.position.set(0, 1, 0);
-        mapGroup.add(bridge);
-
+        // Функция генерации НАСТОЯЩИХ домов
         function generateHouse(hx, hz, isTwoStory) {
-            const size = 30;
-            createWall(hx - size/2, hz, 1, size, isTwoStory ? 12 : 6);
-            createWall(hx + size/2, hz, 1, size, isTwoStory ? 12 : 6);
-            createWall(hx, hz - size/2, size, 1, isTwoStory ? 12 : 6);
-            createWall(hx - size/3, hz + size/2, size/3, 1, isTwoStory ? 12 : 6);
-            createWall(hx + size/3, hz + size/2, size/3, 1, isTwoStory ? 12 : 6);
+            const size = 35; const h = isTwoStory ? 18 : 9;
+            createWall(hx - size/2, hz, 1, size, h, 0xdfe6e9);
+            createWall(hx + size/2, hz, 1, size, h, 0xdfe6e9);
+            createWall(hx, hz - size/2, size, 1, h, 0xdfe6e9);
+            createWall(hx - size/3, hz + size/2, size/3, 1, h, 0xdfe6e9);
+            createWall(hx + size/3, hz + size/2, size/3, 1, h, 0xdfe6e9);
 
-            const roofGeo = new THREE.BoxGeometry(size + 2, 0.5, size + 2);
-            const roofMat = new THREE.MeshStandardMaterial({ color: 0xae2012 });
-            const roof = new THREE.Mesh(roofGeo, roofMat); roof.position.set(hx, 6, hz); mapGroup.add(roof);
-
-            if(isTwoStory) {
-                const roof2 = new THREE.Mesh(roofGeo, roofMat); roof2.position.set(hx, 12, hz); mapGroup.add(roof2);
-                const liftGeo = new THREE.BoxGeometry(4, 0.2, 4);
-                const liftMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, wireframe: true });
-                const lift = new THREE.Mesh(liftGeo, liftMat); lift.position.set(hx - size/4, 0.1, hz - size/4); mapGroup.add(lift);
-                interactibles.push({ id: `stairs-${hx}-${hz}`, mesh: lift, type: 'stairs', radius: 3.5, targetY: 7.6, groundY: 1.6 });
-            }
-        }
-        generateHouse(-150, -150, false); generateHouse(200, -250, true); generateHouse(-250, 200, true); generateHouse(150, 250, false);
-
-        for(let i = 0; i < 120; i++) {
-            let tx = (Math.random() - 0.5) * (mapSize - 120); let tz = (Math.random() - 0.5) * (mapSize - 120);
-            if(Math.abs(tz) < 50) tz += 100;
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x4a3728 }));
-            trunk.position.set(tx, 4, tz); mapGroup.add(trunk); wallsBB.push(new THREE.Box3().setFromObject(trunk));
-            const leaves = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 8), new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.9 }));
-            leaves.position.set(tx, 8, tz); mapGroup.add(leaves);
-            const bush = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0xff4d6d : 0xffb703 }));
-            bush.position.set(tx + 3, 1, tz + 3); mapGroup.add(bush);
+            // Крыша
+            const roofGeo = new THREE.ConeGeometry(size * 0.75, 7, 4);
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xd63031, roughness: 0.6 });
+            const roof = new THREE.Mesh(roofGeo, roofMat); roof.position.set(hx, h + 3.5, hz); roof.rotation.y = Math.PI / 4;
+            mapGroup.add(roof);
         }
 
-        const ventPositions = [{x:-145, z:-145}, {x:205, z:-245}, {x:-245, z:205}, {x:155, z:245}, {x:0, z:80}, {x:-100, z:-40}];
+        // Спавним 10 полноценных домов по карте
+        const housePositions = [
+            {x:-150, z:-150, t:false}, {x:200, z:-250, t:true}, {x:-250, z:200, t:true}, {x:150, z:250, t:false},
+            {x:-400, z:-400, t:false}, {x:400, z:400, t:true}, {x:-450, z:100, t:false}, {x:350, z:-100, t:false},
+            {x:-100, z:450, t:true}, {x:50, z:-450, t:false}
+        ];
+        housePositions.forEach(p => generateHouse(p.x, p.z, p.t));
+
+        // Спавним 350 деревьев (Огромный густой лес)
+        for(let i = 0; i < 350; i++) {
+            let tx = (Math.random() - 0.5) * (mapSize - 150); let tz = (Math.random() - 0.5) * (mapSize - 150);
+            if(Math.abs(tz) < 60) tz += 100; // Прочь от реки при генерации
+            
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 1.1, 10, 8), new THREE.MeshStandardMaterial({ color: 0x5c4033 }));
+            trunk.position.set(tx, 5, tz); mapGroup.add(trunk); wallsBB.push(new THREE.Box3().setFromObject(trunk));
+            
+            const leaves = new THREE.Mesh(new THREE.SphereGeometry(4.5, 12, 12), new THREE.MeshStandardMaterial({ color: 0x1b4d3e, roughness: 0.9 }));
+            leaves.position.set(tx, 10, tz); mapGroup.add(leaves);
+        }
+
+        // Переработанные высокодетализированные ЛЮКИ
+        const ventPositions = [{x:-145, z:-145}, {x:205, z:-245}, {x:-245, z:205}, {x:155, z:245}, {x:0, z:90}, {x:-100, z:-40}];
         ventPositions.forEach((pos, idx) => {
-            const vent = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 0.1, 16), new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.9 }));
-            vent.position.set(pos.x, 0.05, pos.z); mapGroup.add(vent);
-            interactibles.push({ id: `vent-${idx}`, mesh: vent, type: 'vent', radius: 4.0, x: pos.x, z: pos.z });
+            const ventGroup = new THREE.Group();
+            // Металлическое основание люка
+            const base = new THREE.Mesh(new THREE.BoxGeometry(5, 0.2, 5), new THREE.MeshStandardMaterial({ color: 0x2c3e50, metalness: 0.8 }));
+            // Светящееся неоновое кольцо
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.15, 8, 24), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+            ring.rotation.x = Math.PI / 2; ring.position.y = 0.11;
+            ventGroup.add(base, ring); ventGroup.position.set(pos.x, 0.05, pos.z); mapGroup.add(ventGroup);
+            interactibles.push({ id: `vent-${idx}`, mesh: base, type: 'vent', radius: 4.5, x: pos.x, z: pos.z });
         });
 
 
-        // --- СЕТЕВОЙ МУЛЬТИПЛЕЕР И КОМНАТЫ ---
-        let playerPos = new THREE.Vector3(0, 1.6, 150);
+        // --- СВЯЗЬ И РЕАЛЬНЫЕ 3D МОДЕЛИ АМОНГ АС ---
+        // Строит НАСТОЯЩЕГО Амонгаса из примитивов
+        function createAmongUsModel(colorStr) {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: colorStr, roughness: 0.5 });
+            
+            // Тело (Скругленный цилиндр)
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.0, 20), mat);
+            body.position.y = 0.7; group.add(body);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.45, 20, 20), mat);
+            head.position.y = 1.2; group.add(head);
+
+            // Рюкзак
+            const pack = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.7, 0.5), mat);
+            pack.position.set(0, 0.8, -0.4); group.add(pack);
+
+            // Визор (Стекло скафандра)
+            const visorMat = new THREE.MeshStandardMaterial({ color: 0x7ed6df, roughness: 0.1, metalness: 0.9 });
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.2), visorMat);
+            visor.position.set(0, 1.05, 0.4); group.add(visor);
+
+            // Ноги
+            const legGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.35, 12);
+            const leftLeg = new THREE.Mesh(legGeo, mat); leftLeg.position.set(-0.2, 0.17, 0);
+            const rightLeg = new THREE.Mesh(legGeo, mat); rightLeg.position.set(0.2, 0.17, 0);
+            group.add(leftLeg, rightLeg);
+
+            group.userData = { leftLeg, rightLeg, body };
+            return group;
+        }
+
+        let playerPos = new THREE.Vector3(0, 1.6, 160);
         let yaw = 0, pitch = 0; camera.position.copy(playerPos);
-        const playerRadius = 0.8; const playerBB = new THREE.Box3();
+        let walkCycle = 0, bobY = 0; // Для покачивания камеры
 
         let myId = "", isHost = false, roomCode = "", myRole = "Crewmate";
         let peer = null, connections = [], networkPlayers = {}, lobbyPlayersData = [];
@@ -313,16 +329,16 @@
         const keys = { KeyW: false, KeyA: false, KeyS: false, KeyD: false, KeyE: false, KeyQ: false, KeyM: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
         window.addEventListener('keydown', (e) => { 
             if(e.code in keys) keys[e.code] = true; 
-            if(e.code === 'KeyM' || e.code === 'KeyV') toggleImpostorMap();
+            if(e.code === 'KeyM') toggleImpostorMap();
         });
         window.addEventListener('keyup', (e) => { if(e.code in keys) keys[e.code] = false; });
 
         document.getElementById('action-create').onclick = () => {
-            isHost = true; roomCode = Math.floor(100 + Math.random() * 900).toString(); initNetwork(`among-hide-${roomCode}`);
+            isHost = true; roomCode = Math.floor(100 + Math.random() * 900).toString(); initNetwork(`among-real-${roomCode}`);
         };
         document.getElementById('action-join').onclick = () => {
             const code = document.getElementById('code-input').value;
-            if(code.length !== 3) return alert("Введите 3-значный код комнаты!");
+            if(code.length !== 3) return alert("Код должен состоять из 3 цифр!");
             isHost = false; roomCode = code; initNetwork();
         };
 
@@ -339,6 +355,9 @@
                 if(isHost) {
                     document.getElementById('start-game-btn').style.display = 'block';
                     document.getElementById('start-game-btn').onclick = () => {
+                        // ФИКС ХОСТА: Скрываем лобби у хоста сразу при клике!
+                        document.getElementById('lobby-screen').style.display = 'none';
+                        
                         const allIds = connections.map(c => c.peer); allIds.push(myId);
                         const impId = allIds[Math.floor(Math.random() * allIds.length)];
                         connections.forEach(c => {
@@ -348,7 +367,7 @@
                         setupGameRole(myId === impId ? 'Impostor' : 'Crewmate'); hostStartGame();
                     };
                 } else {
-                    let conn = peer.connect(`among-hide-${roomCode}`); setupConnection(conn);
+                    let conn = peer.connect(`among-real-${roomCode}`); setupConnection(conn);
                 }
                 gameLoop();
             });
@@ -361,9 +380,10 @@
             conn.on('data', (data) => {
                 if(isHost) { connections.forEach(oc => { if(oc.peer !== conn.peer) oc.send({ ...data, senderId: conn.peer }); }); }
                 const sender = data.senderId || conn.peer;
+                
                 if(data.type === 'lobby-join') {
                     lobbyPlayersData.push({ name: data.name, color: data.color }); rebuildLobbyUI();
-                    createRemoteMesh(sender, data.name, data.color);
+                    createRemotePlayer(sender, data.name, data.color);
                     if(isHost) connections.forEach(c => c.send({ type: 'lobby-sync', players: lobbyPlayersData }));
                 }
                 if(data.type === 'lobby-sync') { lobbyPlayersData = data.players; rebuildLobbyUI(); }
@@ -372,9 +392,11 @@
                 if(data.type === 'timer-update') { updateTimerUI(data.time); }
                 if(data.type === 'game-over') { endGame(data.winner); }
                 if(data.type === 'player-move') {
-                    if(!networkPlayers[sender]) createRemoteMesh(sender, "Игрок", data.color || '#fff');
+                    if(!networkPlayers[sender]) createRemotePlayer(sender, "Игрок", data.color || '#fff');
                     networkPlayers[sender].mesh.position.set(data.x, data.y, data.z);
-                    networkPlayers[sender].mesh.visible = !data.hidden; networkPlayers[sender].role = data.role; networkPlayers[sender].isDead = data.isDead;
+                    networkPlayers[sender].mesh.rotation.y = data.rotY;
+                    networkPlayers[sender].mesh.visible = !data.hidden;
+                    networkPlayers[sender].role = data.role; networkPlayers[sender].isDead = data.isDead;
                     if(data.isDead) networkPlayers[sender].mesh.rotation.z = Math.PI / 2;
                 }
                 if(data.type === 'kill-target' && data.target === myId) { myRole = "Ghost"; alert("Вы пойманы Предателем!"); }
@@ -385,22 +407,22 @@
             document.getElementById('lobby-players-list').innerHTML = lobbyPlayersData.map(p => `<span style="color:${p.color}">■</span> [ГОТОВ] ${p.name}`).join('<br>');
         }
 
-        function createRemoteMesh(id, name, color) {
+        function createRemotePlayer(id, name, color) {
             if(networkPlayers[id] || id === myId) return;
-            const geo = new THREE.CylinderGeometry(0.6, 0.6, 1.5, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: color });
-            const mesh = new THREE.Mesh(geo, mat); mesh.position.set(0, 0.75, 0);
-
+            
+            // Спавним Настоящую 3D модель Амонг ас вместо квадрата
+            const amogusMesh = createAmongUsModel(color);
+            
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
             canvas.width = 256; canvas.height = 64; ctx.fillStyle = color; ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center'; ctx.fillText(name, 128, 40);
             const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas) }));
-            sprite.position.y = 1.5; sprite.scale.set(2, 0.5, 1); mesh.add(sprite);
+            sprite.position.y = 1.7; sprite.scale.set(2, 0.5, 1); amogusMesh.add(sprite);
 
-            scene.add(mesh); networkPlayers[id] = { mesh, name, color, role: 'Crewmate', isDead: false };
+            scene.add(amogusMesh);
+            networkPlayers[id] = { mesh: amogusMesh, name, color, role: 'Crewmate', isDead: false, modelData: amogusMesh.userData, lastPos: new THREE.Vector3() };
         }
 
-
-        // --- ЛОГИКА РУЛЕТКИ ПРЕДАТЕЛЯ И РОЛЕЙ ---
+        // --- РУЛЕТКА ВЫБОРА РОЛЕЙ ---
         const roleCanvas = document.getElementById('role-roulette-canvas');
         const roleCtx = roleCanvas.getContext('2d');
 
@@ -408,80 +430,63 @@
             const sectors = 6; const arc = (Math.PI * 2) / sectors;
             roleCtx.clearRect(0, 0, 200, 200);
             for(let i = 0; i < sectors; i++) {
-                // Чередуем сектора: четные — Экипаж (Голубой), нечетные — Предатель (Красный)
                 roleCtx.fillStyle = (i % 2 === 0) ? '#00e5ff' : '#ff2e63';
                 roleCtx.beginPath(); roleCtx.moveTo(100, 100);
                 roleCtx.arc(100, 100, 95, angle + i * arc, angle + (i + 1) * arc);
                 roleCtx.fill();
-
-                // Текст на секторах
                 roleCtx.save(); roleCtx.translate(100, 100); roleCtx.rotate(angle + i * arc + arc / 2);
-                roleCtx.fillStyle = '#000000'; roleCtx.font = 'bold 11px sans-serif'; roleCtx.textAlign = 'right';
+                roleCtx.fillStyle = '#000'; roleCtx.font = 'bold 11px sans-serif'; roleCtx.textAlign = 'right';
                 roleCtx.fillText(i % 2 === 0 ? 'МИРНЫЙ' : 'ОХОТНИК', 85, 4); roleCtx.restore();
             }
-            // Центральная заглушка
             roleCtx.fillStyle = '#050508'; roleCtx.beginPath(); roleCtx.arc(100, 100, 22, 0, Math.PI * 2); roleCtx.fill();
-            roleCtx.strokeStyle = '#ffffff'; roleCtx.lineWidth = 2; roleCtx.stroke();
         }
 
         function setupGameRole(role) {
             myRole = role;
-            document.getElementById('room-code-display').innerText = `Орбита Пряток: #${roomCode}`;
-            
+            document.getElementById('room-code-display').innerText = `Режим Пряток: #${roomCode}`;
             const scr = document.getElementById('role-screen');
             const txt = document.getElementById('role-text');
             const sub = document.getElementById('role-sub');
-            
-            txt.innerText = ""; sub.innerText = "";
             scr.style.display = 'flex';
 
-            // Математический расчет остановки рулетки под стрелку сверху (угол 1.5 * PI)
             const sectors = 6; const arc = (Math.PI * 2) / sectors;
             const validIndices = (myRole === 'Impostor') ? [1, 3, 5] : [0, 2, 4];
             const chosenIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
             
             let targetAngle = (1.5 * Math.PI - (chosenIndex + 0.5) * arc);
             while (targetAngle < 0) targetAngle += Math.PI * 2;
-            const totalRotation = targetAngle + (Math.PI * 2 * 6); // 6 полных кругов саспенса
+            const totalRotation = targetAngle + (Math.PI * 2 * 5);
 
-            let startTimestamp = null;
-            const duration = 3500; // 3.5 секунды кручения
-
+            let startTimestamp = null; const duration = 3000;
             function animateRoleWheel(timestamp) {
                 if (!startTimestamp) startTimestamp = timestamp;
-                let elapsed = timestamp - startTimestamp;
-                let progress = Math.min(elapsed / duration, 1);
-                
-                // Функция плавного замедления (Ease Out Cubic)
+                let elapsed = timestamp - startTimestamp; let progress = Math.min(elapsed / duration, 1);
                 let easeOut = 1 - Math.pow(1 - progress, 3);
-                let currentAngle = easeOut * totalRotation;
-                
-                drawRoleWheel(currentAngle);
+                drawRoleWheel(easeOut * totalRotation);
 
                 if (progress < 1) { requestAnimationFrame(animateRoleWheel); } 
                 else {
-                    // Колесо остановилось — выдаем вердикт!
                     gameActive = true;
                     if(myRole === 'Impostor') {
                         txt.innerText = "ВЫ ПРЕДАТЕЛЬ"; txt.style.color = "#ff2e63";
-                        sub.innerText = "Ваша цель — поймать команду за 2 минуты. Открывайте Портативный Радар кнопкой [ M ]!";
+                        sub.innerText = "Найдите экипаж на Радар (M). Скорость слегка повышена!";
                         document.getElementById('btn-kill-mob').style.display = 'flex';
                         document.getElementById('btn-map-mob').style.display = 'flex';
                         document.getElementById('mechanics-info').innerHTML = `⚙️ Роль: <b>Предатель</b><br>🔮 Способность: Радар выживших (M)`;
                     } else {
                         txt.innerText = "ВЫ ЭКИПАЖ"; txt.style.color = "#00e5ff";
-                        sub.innerText = "У вас нет карты. Скрывайтесь в кустах и Люках безопасности (кнопка E) до конца таймера!";
+                        sub.innerText = "Прячьтесь в лесу, домах или прыгайте в Люки (E). Опасайтесь воды!";
                         updateCrewHUD();
                     }
-                    setTimeout(() => { scr.style.display = 'none'; }, 3000);
+                    setTimeout(() => { scr.style.display = 'none'; container.requestPointerLock(); }, 2500);
                 }
             }
             requestAnimationFrame(animateRoleWheel);
         }
 
-
-        // --- ИГРОВАЯ СИСТЕМА И ТАЙМЕРЫ МАТЧА ---
+        // --- ИГРОВОЙ ПРОЦЕСС И СИНХРОННЫЙ ТАЙМЕР ---
         function hostStartGame() {
+            matchTimer = 120; // ЖЕСТКО: Ставим 2 минуты (120 сек)
             let timerInterval = setInterval(() => {
                 if(!gameActive) { clearInterval(timerInterval); return; }
                 matchTimer--;
@@ -501,7 +506,7 @@
 
         function updateCrewHUD() {
             if(myRole !== 'Crewmate') return;
-            document.getElementById('mechanics-info').innerHTML = `⚙️ Роль: <b>Выживший</b><br>🕳️ Заряды Люков: <b>${ventUsesLeft}/5</b><br>⏳ Время в люке: ${ventTimeLeft}с`;
+            document.getElementById('mechanics-info').innerHTML = `⚙️ Роль: <b>Выживший</b><br>🕳️ Заряды Люков: <b>${ventUsesLeft}/5</b><br>⏳ Воздух в люке: ${ventTimeLeft}с`;
         }
 
         function updateTimerUI(t) {
@@ -511,28 +516,22 @@
 
         function endGame(winner) {
             gameActive = false; document.exitPointerLock();
-            alert(winner === 'Impostor' ? "ПОБЕДА ПРЕДАТЕЛЯ! Он поймал всех." : "ПОБЕДА ЭКИПАЖА! Кто-то смог выжить.");
+            alert(winner === 'Impostor' ? "ПРЕДАТЕЛЬ ПОБЕДИЛ!" : "ЭКИПАЖ ВЫЖИЛ И ПОБЕДИЛ!");
             window.location.reload();
         }
 
-
-        // --- РАДАР ПРЕДАТЕЛЯ ---
-        const radarCanvas = document.getElementById('impostor-map');
-        const radarCtx = radarCanvas.getContext('2d');
-
+        // --- ПОРТАТИВНЫЙ РАДАР ПРЕДАТЕЛЯ ---
+        const radarCanvas = document.getElementById('impostor-map'); const radarCtx = radarCanvas.getContext('2d');
         function toggleImpostorMap() {
             if(myRole !== 'Impostor' || !gameActive) return;
             isMapOpen = !isMapOpen; radarCanvas.style.display = isMapOpen ? 'block' : 'none';
-            if(isMapOpen) document.exitPointerLock();
+            if(isMapOpen) document.exitPointerLock(); else container.requestPointerLock();
         }
-
         function drawRadar() {
-            if(!isMapOpen) return;
-            radarCtx.clearRect(0, 0, 450, 450);
-            radarCtx.fillStyle = 'rgba(5, 15, 30, 0.85)'; radarCtx.beginPath(); radarCtx.arc(225, 225, 210, 0, Math.PI*2); radarCtx.fill();
-            radarCtx.strokeStyle = '#ff2e63'; radarCtx.lineWidth = 2; radarCtx.stroke();
-            radarCtx.fillStyle = '#ff2e63'; radarCtx.beginPath(); radarCtx.arc(225, 225, 7, 0, Math.PI*2); radarCtx.fill();
-
+            if(!isMapOpen) return; radarCtx.clearRect(0, 0, 450, 450);
+            radarCtx.fillStyle = 'rgba(10, 20, 38, 0.9)'; radarCtx.beginPath(); radarCtx.arc(225, 225, 215, 0, Math.PI*2); radarCtx.fill();
+            radarCtx.strokeStyle = '#ff2e63'; radarCtx.lineWidth = 3; radarCtx.stroke();
+            radarCtx.fillStyle = '#ff2e63'; radarCtx.beginPath(); radarCtx.arc(225, 225, 6, 0, Math.PI*2); radarCtx.fill();
             for(let id in networkPlayers) {
                 let p = networkPlayers[id];
                 if(p.role === 'Crewmate' && !p.isDead && p.mesh.visible) {
@@ -545,10 +544,9 @@
             }
         }
 
-
-        // --- ДВИЖЕНИЕ И ЦИКЛ ИГРЫ ---
+        // --- ДВИЖЕНИЕ, АНИМАЦИИ И ФИЗИКА ПЛАВАНИЯ ---
         let lastX = 0, lastZ = 0, ePressedPrev = false, qPressedPrev = false;
-        let isMouseDown = false; let moveVec = { x: 0, z: 0 };
+        let isMouseDown = false;
 
         window.addEventListener('mousedown', () => isMouseDown = true);
         window.addEventListener('mouseup', () => isMouseDown = false);
@@ -564,64 +562,103 @@
             requestAnimationFrame(gameLoop);
             if(!gameActive) { renderer.render(scene, camera); return; }
 
+            // --- Сниженная, реалистичная скорость ---
+            let baseSpeed = (myRole === 'Impostor') ? 0.23 : 0.16;
+            let currentY = 1.6;
+
+            // Логика плавания в реке (если зашел в воду)
+            const isInsideRiver = (Math.abs(playerPos.z) < 35);
+            const isOnBridge = (Math.abs(playerPos.x) < 25 && isInsideRiver);
+            
+            if (isInsideRiver && !isOnBridge) {
+                currentY = 0.4;      // Погружаемся по грудь в воду
+                baseSpeed *= 0.45;   // Замедление из-за плавания
+            }
+
             if(!inVent && myRole !== 'Ghost') {
-                moveVec = { x: 0, z: 0 };
+                let moveVec = { x: 0, z: 0 };
                 if(keys.KeyW || keys.ArrowUp) moveVec.z = 1; if(keys.KeyS || keys.ArrowDown) moveVec.z = -1;
                 if(keys.KeyA || keys.ArrowLeft) moveVec.x = -1; if(keys.KeyD || keys.ArrowRight) moveVec.x = 1;
 
                 let dirForward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                 let dirSide = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
                 let prePos = playerPos.clone();
-                const speed = (myRole === 'Impostor') ? 0.65 : 0.45;
 
-                playerPos.x += dirForward.x * moveVec.z * speed + dirSide.x * moveVec.x * speed;
-                playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius*2, 2, playerRadius*2));
-                for(let box of wallsBB) { if(playerBB.intersectsBox(box)) { playerPos.x = prePos.x; break; } }
+                playerPos.x += dirForward.x * moveVec.z * baseSpeed + dirSide.x * moveVec.x * baseSpeed;
+                let pBB = new THREE.Box3().setFromCenterAndSize(playerPos, new THREE.Vector3(1.2, 2, 1.2));
+                for(let box of wallsBB) { if(pBB.intersectsBox(box)) { playerPos.x = prePos.x; break; } }
 
-                playerPos.z += dirForward.z * moveVec.z * speed + dirSide.z * moveVec.x * speed;
-                playerBB.setFromCenterAndSize(playerPos, new THREE.Vector3(playerRadius*2, 2, playerRadius*2));
-                for(let box of wallsBB) { if(playerBB.intersectsBox(box)) { playerPos.z = prePos.z; break; } }
+                playerPos.z += dirForward.z * moveVec.z * baseSpeed + dirSide.z * moveVec.x * baseSpeed;
+                pBB.setFromCenterAndSize(playerPos, new THREE.Vector3(1.2, 2, 1.2));
+                for(let box of wallsBB) { if(pBB.intersectsBox(box)) { playerPos.z = prePos.z; break; } }
+
+                // Реалистичное покачивание камеры при ходьбе (Head Bobbing)
+                if (moveVec.x !== 0 || moveVec.z !== 0) {
+                    walkCycle += 0.22;
+                    bobY = Math.sin(walkCycle) * 0.08;
+                } else { bobY = 0; }
             }
-
-            camera.position.copy(playerPos); camera.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), yaw); camera.rotateX(pitch);
+            
+            playerPos.y = currentY;
+            camera.position.set(playerPos.x, playerPos.y + bobY, playerPos.z);
+            camera.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), yaw); camera.rotateX(pitch);
             playerLight.position.copy(playerPos);
 
-            if(Math.abs(playerPos.x - lastX) > 0.02 || Math.abs(playerPos.z - lastZ) > 0.02) {
+            // Отправка координат в сеть
+            if(Math.abs(playerPos.x - lastX) > 0.01 || Math.abs(playerPos.z - lastZ) > 0.01) {
                 connections.forEach(c => c.send({ 
-                    type: 'player-move', x: playerPos.x, y: playerPos.y, z: playerPos.z, 
+                    type: 'player-move', x: playerPos.x, y: playerPos.y - 0.8, z: playerPos.z, rotY: yaw,
                     hidden: inVent, role: myRole, isDead: (myRole === 'Ghost'), color: mySelectedColor
                 }));
                 lastX = playerPos.x; lastZ = playerPos.z;
             }
 
+            // --- АНИМАЦИЯ ХОДЬБЫ ДЛЯ ОСТАЛЬНЫХ ИГРОКОВ (РЕАЛИЗМ) ---
+            for(let id in networkPlayers) {
+                let p = networkPlayers[id];
+                if(!p.isDead) {
+                    let distanceMoved = p.mesh.position.distanceTo(p.lastPos || p.mesh.position);
+                    if(distanceMoved > 0.02) {
+                        p.animTime = (p.animTime || 0) + 0.2;
+                        if(p.modelData) {
+                            p.modelData.leftLeg.rotation.x = Math.sin(p.animTime) * 0.6;
+                            p.modelData.rightLeg.rotation.x = -Math.sin(p.animTime) * 0.6;
+                            p.modelData.body.position.y = 0.7 + Math.abs(Math.sin(p.animTime)) * 0.06;
+                        }
+                    } else {
+                        if(p.modelData) { p.modelData.leftLeg.rotation.x = 0; p.modelData.rightLeg.rotation.x = 0; p.modelData.body.position.y = 0.7; }
+                    }
+                    if(!p.lastPos) p.lastPos = new THREE.Vector3();
+                    p.lastPos.copy(p.mesh.position);
+                }
+            }
+
+            // Взаимодействие с люками
             let nearObj = null;
             for(let obj of interactibles) { if(camera.position.distanceTo(obj.mesh.position) < obj.radius) { nearObj = obj; break; } }
-
             const prompt = document.getElementById('interaction-prompt');
             if(nearObj && myRole !== 'Ghost') {
                 prompt.style.display = 'block';
-                let triggerE = (keys.KeyE && !ePressedPrev);
-                if(triggerE) {
+                if(keys.KeyE && !ePressedPrev) {
                     if(nearObj.type === 'vent' && myRole === 'Crewmate') {
                         if(inVent) { exitVentAction(); } 
                         else if(ventUsesLeft > 0) {
                             inVent = true; ventUsesLeft--; ventTimeLeft = 7;
-                            playerPos.set(nearObj.x, 0.5, nearObj.z); updateCrewHUD();
+                            playerPos.set(nearObj.x, 0.4, nearObj.z); updateCrewHUD();
                             ventInterval = setInterval(() => {
-                                ventTimeLeft--; updateCrewHUD();
-                                if(ventTimeLeft <= 0) exitVentAction();
+                                ventTimeLeft--; updateCrewHUD(); if(ventTimeLeft <= 0) exitVentAction();
                             }, 1000);
                         }
                     }
-                    if(nearObj.type === 'stairs') { playerPos.y = (playerPos.y < 4) ? nearObj.targetY : nearObj.groundY; }
                 }
             } else { prompt.style.display = 'none'; }
             ePressedPrev = keys.KeyE;
 
+            // Логика убийства Предателем
             if(myRole === 'Impostor') {
                 let targetId = null;
                 for(let id in networkPlayers) {
-                    if(networkPlayers[id].role === 'Crewmate' && !networkPlayers[id].isDead && camera.position.distanceTo(networkPlayers[id].mesh.position) < 5.0) { targetId = id; break; }
+                    if(networkPlayers[id].role === 'Crewmate' && !networkPlayers[id].isDead && camera.position.distanceTo(networkPlayers[id].mesh.position) < 6.0) { targetId = id; break; }
                 }
                 const killBtn = document.getElementById('btn-kill-mob');
                 if(targetId) {
@@ -637,7 +674,7 @@
             drawRadar(); renderer.render(scene, camera);
         }
 
-        function exitVentAction() { clearInterval(ventInterval); inVent = false; playerPos.z += 4; updateCrewHUD(); }
+        function exitVentAction() { clearInterval(ventInterval); inVent = false; playerPos.z += 5; updateCrewHUD(); }
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
